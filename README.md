@@ -1,2 +1,2 @@
 # upm
-*unix patch management
+universal patch management
