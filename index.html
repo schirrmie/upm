@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>universal patch manager</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/tablesort.css">
+    <link rel="stylesheet" href="css/toast.min.css">
+    <link rel="stylesheet" href="css/upm.css">
+    <link rel="stylesheet" href="css/fontawesome.css">
+    <link rel="stylesheet" href="css/font-logos.css">
+    <link rel="stylesheet" href="css/fontawesome-iconpicker.min.css">
+
+    <style>
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid container-update">
+      <div class="page-header">
+        <h3><a href="" class="text-decoration-none text-reset"><i class="fas fa-cubes"></i> UPM </a><small>universal patch manager</small></h3>
+      </div>
+      <button id="button-global-settings" type="button" class="btn btn-outline-secondary btn-sm my-3 mx-4" data-toggle="modal" style="position: absolute; right: 0; top: 0;">Global Settings</button>
+      <div class="row mb-2">
+        <!-- Modal Mass Import-->
+        <div class="modal fade" id="modal-mass-import" tabindex="-1" role="dialog" aria-labelledby="modal-mass-import-title" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-mass-Import-title">Mass Import</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  <small id="Import-Syntax" class="form-text text-muted text-monospace" style="white-space:pre">Syntax:<br/># as the first character denotes a Folder<br/>Space as First character denotes a Host or Folder inside the previously declared folder<br/>+ as the First character denotes Host. Thereby space and + is Host inside previously delcared folder<br/>Example:<br/>#Folder1<br/> #Subfolder1<br/>+Host1(in root folder)<br/> +Host2(in Folder1) </small>
+                  <textarea class="form-control text-monospace" id='mass-import-data' rows="20"></textarea>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="button-mass-import-import" type="button" class="btn btn-primary">Import</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Modal Global settings-->
+        <div class="modal fade" id="modal-global-settings" tabindex="-1" role="dialog" aria-labelledby="modal-global-settings-title" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-global-settings-title">Global Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 155px;">Default Private Key</span>
+                  </div>
+                  <textarea id="global-ssh-private-key" class="form-control" aria-label="private key"></textarea>
+                </div>
+                <p></p>
+                <div class="form-row">
+                  <div class="col">
+                    <div class="form-group">
+                      <label for="global-distribution-command">Default distribution command</label>
+                      <input type="text" class="form-control" id="global-distribution-command">
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-group">
+                      <label for="global-distribution-version-command">Default distribution version command</label>
+                      <input type="text" class="form-control" id="global-distribution-version-command">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="col">
+                    <div class="form-group">
+                      <label for="global-ssh-port">Default SSH port</label>
+                      <input type="number" class="form-control" id="global-ssh-port">
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-group">
+                      <label for="global-ssh-username">Default SSH username</label>
+                      <input type="text" class="form-control" id="global-ssh-username">
+                    </div>
+                  </div>
+                </div>
+                <p></p>
+                <h3>Distribution configuration</h3>
+                <div class="heightTable200">
+                  <table id="distribution-config" class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Distribution match</th>
+                        <th scope="col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="btn btn-outline-secondary" type="button" id="button-add-distribution-config">Add new</button>
+                <p></p>
+                <h3>End of Life configuration</h3>
+                <div class="heightTable200">
+                  <table id="eol-config" class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Distribution match</th>
+                        <th scope="col">End of Life</th>
+                        <th scope="col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="btn btn-outline-secondary" type="button" id="button-add-eol-config">Add new</button>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="button-save-global-config" type="button" class="btn btn-primary">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Add/Edit Distribution Command-->
+        <div class="modal fade" id="modal-distribution-config" tabindex="-1" role="dialog" aria-labelledby="modal-distribution-configTitle" aria-hidden="true">
+          <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-distribution-configTitle">Add/Edit distribution config</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>All commands have to return zero if successfull!</p>
+                <div class="form-group">
+                  <label for="distri-configname">Distribution</label>
+                  <input type="text" class="form-control" id="distri-configname" placeholder="Debian 9" aria-describedby="distri-configHelp">
+                  <small id="distri-configHelp" class="form-text text-muted">Add version to match distributioin + version. Use wildcards like Debian 9*</small>
+                </div>
+                <div class="form-group">
+                  <label for="distri-distriname">Distribution command</label>
+                  <input type="text" class="form-control" id="distri-distriname" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label for="distri-version">Distribution Version command</label>
+                  <input type="text" class="form-control" id="distri-version" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label for="distri-uptime">Uptime command</label>
+                  <input type="text" class="form-control" id="distri-uptime" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label for="distri-restart">Reboot required command</label>
+                  <input type="text" class="form-control" id="distri-restart" placeholder="" aria-describedby="distri-restartHelp">
+                  <small id="distri-restartHelp" class="form-text text-muted">0 = No; 1 = Yes; 2 = -; anything else = ?</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-update-list">Update list packages command</label>
+                  <input type="text" class="form-control" id="distri-update-list" placeholder="">
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-package-info">Package info command</label>
+                  <input type="text" class="form-control" id="distri-package-info" placeholder="">
+                  <small class="form-text text-muted">use variable ${PackageName}</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-package-changelog">Package changelog command</label>
+                  <input type="text" class="form-control" id="distri-package-changelog" placeholder="">
+                  <small class="form-text text-muted">use variable ${PackageName}</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-update-system">Update system command</label>
+                  <input type="text" class="form-control" id="distri-update-system" placeholder="">
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-update-package">Update package command</label>
+                  <input type="text" class="form-control" id="distri-update-package" placeholder="">
+                  <small class="form-text text-muted">use variable ${PackageName}</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-shedule-reboot-add">Shedule reboot command</label>
+                  <input type="text" class="form-control" id="distri-shedule-reboot-add" placeholder="">
+                  <small class="form-text text-muted">use variable ${YYYY} ${MM} ${DD} ${hh} ${mm} for date / time</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="distri-shedule-reboot-get">Shedule reboot query command</label>
+                  <input type="text" class="form-control" id="distri-shedule-reboot-get" placeholder="">
+                  <small class="form-text text-muted">if shedule reboot exist, command must return unix timestamp when reboot is sheduled</small>
+                </div>
+                <div class="form-group">
+                  <label for="distri-shedule-reboot-del">Shedule reboot delete command</label>
+                  <input type="text" class="form-control" id="distri-shedule-reboot-del" placeholder="">
+                  <small class="form-text text-muted">delete the shedule reboot of the previous command</small>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="button-save-distribution-config" type="button" class="btn btn-primary">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Add/Edit EOL Command-->
+        <div class="modal fade" id="modal-eol-config" tabindex="-1" role="dialog" aria-labelledby="modal-eol-configTitle" aria-hidden="true">
+          <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-eol-configTitle">Add/Edit EOL config</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <label for="distri-configname">Distribution</label>
+                  <input type="text" class="form-control" id="eol-distri-configname" placeholder="Debian 9" aria-describedby="distri-configHelp">
+                  <small id="distri-configHelp" class="form-text text-muted">Add version to match distributioin + version. Use wildcards like Debian 9*</small>
+                </div>
+                <label for="distri-eol">End of life (EOL) of distribution</label>
+                <input type="date" class="form-control" id="distri-eol" placeholder="">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="button-save-eol-config" type="button" class="btn btn-primary">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal important updates -->
+        <div class="modal fade" id="modal-important-updates" tabindex="-1" role="dialog" aria-labelledby="modal-important-updates-title" aria-hidden="true">
+          <div class="modal-dialog modal modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-important-updates-title">Important updates</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <table id="important-updates" class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th scope="col">Name</th>
+                      <th scope="col">Comment</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+                <button class="btn btn-outline-secondary" type="button" id="button-add-iu">Add new</button>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal shedule reboot -->
+        <div class="modal fade" id="modal-shedule-reboot" tabindex="-1" role="dialog" aria-labelledby="modal-shedule-reboot-title" aria-hidden="true">
+          <div class="modal-dialog modal modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-shedule-reboot-title">Shedule reboot</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <label for="datetime-shedule-reboot">Set date and time for reboot</label>
+                <input id="datetime-shedule-reboot" type="datetime-local" name="shedule-reboot">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="button-save-shedule-reboot" type="button" class="btn btn-primary">Shedule</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="row">
+        <div class="col-3">
+          <div class="input-group input-group-sm mb-1">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="basic-addon1">Search</span>
+            </div>
+            <input id="input-searchfolder" type="search" class="form-control " placeholder="folder" aria-label="folder" aria-describedby="button-searchserver">
+          </div>
+
+          <div id="folderlist" class="just-padding">
+          </div>
+          <label for="input-add-server">Add new Host</label>
+          <div class="input-group mb-3">
+            <input id="input-add-server" type="text" class="form-control" placeholder="Hostname" aria-label="Hostname" aria-describedby="button-add-server">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" id="button-add-server">Add</button>
+            </div>
+          </div>
+          <label for="input-add-folder">Add new Folder</label>
+          <div class="input-group mb-3">
+            <input id="input-add-folder" type="text" class="form-control" placeholder="Name" aria-label="Name" aria-describedby="button-add-folder">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" id="button-add-folder">Add</button>
+            </div>
+          </div>
+          <button class="btn btn-outline-secondary" type="button" id="button-mass-import">Add multiple hosts/folders</button>
+
+        </div>
+        <div class="col">
+          <div id="server-info" class="card" style="display: none;">
+            <div class="card-header">
+              <div class="row">
+                <div class="col">
+                  <h4 class="mb-0"><span id="server-info-name"></span></h4>
+                </div>
+                <div class="col">
+                  <div class="d-flex justify-content-end">
+                    <button id="button-edit-server" type="button" class="btn btn-outline-primary btn-sm mx-1">Edit</button>
+                    <div class="btn-group mx-1">
+                      <button id="button-server-reboot-add" type="button" class="btn btn-outline-secondary btn-sm" disabled>Shedule reboot</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                      </button>
+                      <div class="dropdown-menu">
+                        <button id="button-server-reboot-del" class="dropdown-item" type="button" disabled>Delete sheduled reboot</button>
+                      </div>
+                    </div>
+
+                    <button id="button-server-imp-updates" type="button" class="btn btn-outline-secondary btn-sm mx-1">Important updates</button>
+                    <button id="button-inventory-server" type="button" class="btn btn-outline-secondary btn-sm mx-1">Inventory</button>
+                    <button id="button-update-server" type="button" class="btn btn-outline-secondary btn-sm mx-1">Update Host</button>
+                    <button id="button-delete-server" type="button" class="btn btn-outline-danger btn-sm mx-1">Delete</button>
+                    <a id="link-server" class="ml-2 pt-1" href="#"><i class="fas fa-link"></i></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="card-text">
+                <div class="row">
+                <div class="col">
+                <table id="server-info-table" class="table table-sm">
+                  <col width="200">
+                  <tbody>
+                    <tr>
+                      <th>Hostname</th>
+                      <td id="server-info-hostname"></td>
+                    </tr>
+                    <tr>
+                      <th>Distribution</th>
+                      <td id="server-info-distribution"></td>
+                    </tr>
+                    <tr>
+                      <th>last inventoried</th>
+                      <td id="server-last-inventoried"></td>
+                    </tr>
+                    <tr>
+                      <th>last updated</th>
+                      <td id="server-last-updated"></td>
+                    </tr>
+                  </tbody>
+                </table>
+                </div>
+                <div class="col">
+                <table id="server-info-table2" class="table table-sm">
+                  <col width="200">
+                  <tbody>
+                    <tr>
+                      <th>Uptime</th>
+                      <td id="server-info-uptime"></td>
+                    </tr>
+                    <tr>
+                      <th>Reboot required</th>
+                      <td id="server-info-restartrequired"></td>
+                    </tr>
+                    <tr>
+                      <th>Sheduled reboot</th>
+                      <td id="server-info-sheduled-restart"></td>
+                    </tr>
+                    <tr>
+                      <th>Updates</th>
+                      <td id="server-info-updates"></td>
+                    </tr>
+                  </tbody>
+                </table>
+                </div>
+                </div>
+              </p>
+							<div id="server-updates-container">
+              	<h4 class="card-title">Updates
+                </h4>
+                <div class="heightTable300">
+								  <table id="server-updates" class="table table-sm table-hover">
+  								  <thead class="thead-light">
+    								  <tr>
+      								  <th scope="col">#</th>
+      								  <th scope="col">Package</th>
+      								  <th scope="col">Actions</th>
+    								  </tr>
+  								  </thead>
+  								  <tbody>
+  								  </tbody>
+								  </table>
+								</div>
+							</div>
+
+              <p></p>
+
+              <div class="row">
+                <div class="col">
+                  <h4 class="card-title">Host output</h4>
+                </div>
+                <div class="col">
+  						  	<div class="input-group input-group-sm mb-1 float-right">
+    				  			<div class="input-group-prepend">
+      		  					<label class="input-group-text" for="select-server-update-output">select history update output</label>
+  		    					</div>
+  	  	  					<select id="select-server-update-output" class="custom-select">
+    			  				</select>
+  					  		</div>
+                </div>
+              </div>
+              <textarea id="server-output" rows="10" class="form-control" style="white-space: pre; overflow: auto;" readonly></textarea>
+
+              <p></p> 
+
+            </div>
+          </div>
+
+          <!-- Modal FullText -->
+          <div class="modal fade" id="modal-full-text" tabindex="-1" role="dialog" aria-labelledby="modal-full-textTitle" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-full-textTitle"></h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <textarea id="modal-full-text-Text" class="form-control" aria-label="changelog-text" style="height: 600px;"></textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Full Loading -->
+          <div class="modal fade" id="modal-full-loading" tabindex="-1" role="dialog" aria-labelledby="modal-fullloading-title" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-fullloading-title">Initialization</h5>
+                </div>
+                <div class="modal-body mx-auto">
+                  <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal important package comment -->
+          <div class="modal fade" id="modal-impartant-update-comment" tabindex="-1" role="dialog" aria-labelledby="modal-impartant-update-comment-title" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-impartant-update-comment-title">Important update</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="col">
+                    <label for="modal-impartant-package-name">Package</label>
+                    <input type="text" class="form-control" id="modal-impartant-package-name" placeholder="">
+                  </div>
+                  <div class="col">
+                    <label for="modal-impartant-update-comment-text">Comment</label>
+                    <textarea id="modal-impartant-update-comment-text" rows="5" class="form-control" aria-label="comment-text"></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button id="button-save-important-update-comment" type="button" class="btn btn-primary">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Server configuration -->
+          <div class="modal fade" id="modal-server-config" tabindex="-1" role="dialog" aria-labelledby="modal-server-configTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-server-configTitle">Host configuration</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+
+                  <div class="form-row">
+                    <div class="col">
+                      <label for="server-config-name">Name</label>
+                      <input type="text" class="form-control" id="server-config-name" placeholder="">
+                    </div>
+                    <div class="col">
+                      <label for="server-config-hostname">Hostname</label>
+                      <input type="text" class="form-control" id="server-config-hostname" placeholder="">
+                    </div>
+                  </div>
+                  <p></p>
+                  <div class="form-row">
+                    <div class="col">
+                      <label for="server-config-distri">Distribution overwrite</label>
+                      <input type="text" class="form-control" id="server-config-distri" placeholder="">
+                    </div>
+                  </div>
+                  <small class="form-text text-muted">Set the distribution manualy. This will always overwrite the detected distribution by command.</small>
+                  <p></p>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" style="width: 155px;">Host Private Key</span>
+                    </div>
+                    <textarea id="server-config-privatekey" class="form-control" aria-label="private key"></textarea>
+                  </div>
+                  <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                  <p></p>
+                  <div class="form-row">
+                    <div class="col">
+                      <div class="form-group">
+                        <label for="server-config-sshport">Host SSH port</label>
+                        <input type="number" class="form-control" id="server-config-sshport">
+                        <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="form-group">
+                        <label for="server-config-sshusername">Host SSH username</label>
+                        <input type="text" class="form-control" id="server-config-sshusername">
+                        <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                      </div>
+                    </div>
+                  </div>
+							    <div class="input-group mb-1">
+  							    <div class="input-group-prepend">
+    							    <label class="input-group-text" for="select-move-server">Move host to</label>
+  							    </div>
+  							    <select id="select-move-server" class="custom-select">
+  							    </select>
+  							    <div class="input-group-append">
+    							    <button id="button-move-server" class="btn btn-outline-secondary" type="button">Move</button>
+  							    </div>
+							    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button id="button-save-server-config" type="button" class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="folder-info" class="card" style="display: none;">
+            <div class="card-header">
+              <div class="row">
+                <div class="col">
+                  <h4 class="mb-0"><span class="pr-2"><i id="folder-info-icon" class=""></i></span><span id="folder-info-name"></span></h4>
+                </div>
+                <div class="col">
+                  <div class="d-flex justify-content-end">
+                    <button id="button-edit-folder" type="button" class="btn btn-outline-primary btn-sm mx-1">Edit</button>
+                    <button id="button-delete-folder" type="button" class="btn btn-outline-danger btn-sm mx-1">Delete</button>
+                    <a id="link-folder" class="ml-2 pt-1" href="#"><i class="fas fa-link"></i></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="custom-control custom-switch float-sm-right mb-2">
+                <input type="checkbox" class="custom-control-input" id="switch-include-subfolders" checked>
+                <label class="custom-control-label" for="switch-include-subfolders">Include subfolders</label>
+              </div>
+              <table id="folder-info-table" class="table table-sm mb-0">
+                <thead class="">
+                  <tr>
+                    <th>Hosts</th>
+                    <th>with updates</th>
+                    <th>with bad EOL</th>
+                    <th data-toggle="tooltip" title="with reboot required">with RR</th>
+                    <th data-toggle="tooltip" title="with sheduled reboot">with SR</th>
+                  </tr>
+                <tbody>
+                  <tr>
+                    <td id="folder-info-server-count"></td>
+                    <td id="folder-info-server-w-updates"></td>
+                    <td id="folder-info-server-bad-eol"></td>
+                    <td id="folder-info-restartrequired"></td>
+                    <td id="folder-info-sheduled-reboot"></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="row justify-content-between mb-2">
+                <div class="col-8 ml-auto pr-0 mr-3">
+                  <div class="d-flex justify-content-end">
+                    <button id="button-serverlist-select-all" type="button" class="btn btn-outline-secondary btn-sm">Select all</button>
+                    <button id="button-serverlist-unselect-all" type="button" class="btn btn-outline-secondary btn-sm mx-2">Unselect all</button>
+                    <div class="btn-group">
+                      <button id="button-all-server-reboot-add" type="button" class="btn btn-outline-secondary btn-sm">Shedule reboot</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                      </button>
+                      <div class="dropdown-menu">
+                        <button id="button-all-server-reboot-del" class="dropdown-item" type="button">Delete sheduled reboot</button>
+                      </div>
+                    </div>
+                    <button id="button-inventory-all-server" type="button" class="btn btn-outline-secondary btn-sm mx-2">Inventory All</button>
+                    <button id="button-update-all-server" type="button" class="btn btn-outline-secondary btn-sm">Update All</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="div-command-progress" class="progress mb-2">
+                <div id="command-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div id="command-progressError" class="progress-bar bg-danger" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+
+              <div class="row">
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-1">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="basic-addon1">Filter</span>
+                    </div>
+                    <input id="input-searchserver-list" type="search" class="form-control form-control-sm" placeholder="host" aria-label="host">
+                  </div>
+                </div>
+                <div class="col-6 ml-auto pr-0 mr-3">
+                  <div class="d-flex justify-content-end">
+                    <div class="custom-control custom-switch mx-2">
+                      <input type="checkbox" class="custom-control-input" id="switch-show-update-packages">
+                      <label class="custom-control-label" for="switch-show-update-packages">Show update packages list</label>
+                    </div>
+
+                    <div class="custom-control custom-switch">
+                      <input type="checkbox" class="custom-control-input" id="switch-show-full-output">
+                      <label class="custom-control-label" for="switch-show-full-output">Show full output</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+						  <table id="folder-server-list" class="table table-sm table-hover table-bordered">
+  						  <thead class="thead-light">
+    						  <tr>
+      						  <th scope="col">#</th>
+      						  <th scope="col">Sel</th>
+      						  <th scope="col">Host</th>
+      						  <th scope="col" class="updates">Upd</th>
+      						  <th scope="col" class="update_list">Updates</th>
+      						  <th scope="col" class="sys" data-toggle="tooltip" title="distribution">SYS</th>
+      						  <th scope="col" class="eol" data-toggle="tooltip" title="end of life">EOL</th>
+      						  <th scope="col" class="rr" data-toggle="tooltip" title="reboot required">RR</th>
+      						  <th scope="col" class="sr" data-toggle="tooltip" title="sheduled reboot">SR</th>
+      						  <th scope="col">Inventory</th>
+      						  <th scope="col">Update</th>
+      						  <th scope="col" class="output">Output</th>
+      						  <th scope="col" class="output-full">Output</th>
+    						  </tr>
+  						  </thead>
+  						  <tbody>
+  						  </tbody>
+						  </table>
+
+						</div>
+
+          </div>
+
+          <!-- Modal folder configuration -->
+          <div class="modal fade" id="modal-folder-config" tabindex="-1" role="dialog" aria-labelledby="modal-folder-configTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-folder-configTitle">Folder configuration</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+
+                  <div class="form-row">
+                    <div class="col">
+                      <label for="folder-config-name">Name</label>
+                      <input type="text" class="form-control" id="folder-config-name" placeholder="">
+                    </div>
+                  </div>
+                  <p></p>
+                  <div class="form-group">
+                    <label>Icon</label>
+                    <div class="input-group iconpicker-container">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i id="folder-IconPickerPreview" class="fas fa-archive"></i></span>
+                      </div>
+                      <input id="folder-IconPicker" data-placement="bottomLeft" class="form-control icp iconpicker-element iconpicker-input" value="fas fa-archive" type="text">
+                    </div>
+                  </div>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" style="width: 155px;">Host Private Key</span>
+                    </div>
+                    <textarea id="folder-config-privatekey" class="form-control" aria-label="private key"></textarea>
+                  </div>
+                  <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                  <p></p>
+                  <div class="form-row">
+                    <div class="col">
+                      <div class="form-group">
+                        <label for="folder-config-sshport">Host SSH port</label>
+                        <input type="number" class="form-control" id="folder-config-sshport">
+                        <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="form-group">
+                        <label for="folder-config-sshusername">Host SSH username</label>
+                        <input type="text" class="form-control" id="folder-config-sshusername">
+                        <small class="form-text text-muted">If not set the default value from global setting will be used.</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="input-group">
+  							      <div class="input-group-prepend">
+    							      <label class="input-group-text" for="select-move-folder">Move folder to</label>
+  							      </div>
+  							      <select id="select-move-folder" class="custom-select" id="select-move-folder">
+  							      </select>
+  							      <div class="input-group-append">
+    							      <button id="button-moveFolder" class="btn btn-outline-secondary" type="button">Move</button>
+  							      </div>
+  							    </div>
+  							  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button id="button-save-folder-config" type="button" class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div> <!-- container -->
+    <div class="page-footer container text-center">
+      <span class="font-weight-light text-monospace text-muted">UPM version 0.1.2</span>
+    </div>
+
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/toast.min.js"></script>
+    <script src='js/tablesort.min.js'></script>
+    <script src='js/tablesort.number.min.js'></script>
+    <script src='js/tablesort.date.min.js'></script>
+    <script src="js/fontawesome-all.js"></script>
+    <script src="js/fontawesome-iconpicker.min.js"></script>
+    <script src='js/cache.js'></script>
+    <script src='js/upm.folder.js'></script>
+    <script src='js/upm.server.js'></script>
+    <script src='js/upm.backend.js'></script>
+    <script src='js/upm.frontend.js'></script>
+
+    <script type="text/javascript">
+      var upm;
+      var sT, eT;
+      function start() { sT = new Date(); }
+      function end(s) { eT = new Date(); var tD = eT - sT; console.log(s + ' ' + tD + " ms"); }
+
+      $( document ).ready(function() {
+        start();
+        $('#folder-IconPicker').iconpicker();
+        $('.iconpicker-popover.popover').removeClass('fade'); // https://github.com/itsjavi/fontawesome-iconpicker/issues/34#issuecomment-443839776
+        new Tablesort(document.getElementById('folder-server-list'), {descending: true});
+
+        upm = new UPMFrontend(UPMInitFinishedCallback);
+        upm.loadData();
+      });
+
+      var UPMInitFinishedCallback = function() {
+        const myURL = new URL(window.location.href);
+        if( myURL.searchParams.get('folder_id') != null) {
+          upm.folderListSelectFolder( parseInt(myURL.searchParams.get('folder_id')) );
+        }
+        if( myURL.searchParams.get('server_id') != null) {
+          if( !upm.showSingleServer( parseInt(myURL.searchParams.get('server_id')) ) ) {
+            upm.folderListSelectFolder( 0 );
+          }
+        }
+        if( upm.currentView == undefined ) {
+          upm.folderListSelectFolder( 0 );
+        }
+
+        $('[data-toggle="tooltip"]').tooltip();
+        end("UPM init finished in");
+      }
+      $('.icp').on('iconpickerSelected', function (e) {
+        $('#folder-IconPickerPreview').removeClass();
+        $('#folder-IconPickerPreview').addClass(e.iconpickerInstance.options.iconBaseClass + ' ' + e.iconpickerInstance.options.fullClassFormatter(e.iconpickerValue));
+      });
+
+      $( "#button-add-server" ).click(function( e ) {
+        var server_name = $("#input-add-server").val();
+        upm.addServer( server_name );
+      });
+      $( "#button-add-folder" ).click(function( e ) {
+        var folder_name = $("#input-add-folder").val();
+        upm.addFolder( folder_name );
+      });
+      $( "#button-mass-import" ).click(function( e ) {
+        $('#modal-mass-import').modal('show');
+      });
+      $( "#button-mass-import-import" ).click(function( e ) {
+        var ImportData = $("#mass-import-data").val();
+        upm.massImport( ImportData );
+        $('#modal-mass-import').modal('hide');
+      });
+      $( "#button-delete-server" ).click(function( e ) {
+        var server_id = $( '#server-info-name' ).attr("data-serverid");
+        upm.deleteServer( server_id );
+      });
+      $( "#button-delete-folder" ).click(function( e ) {
+        var folder_id = Number($( '#folder-info-name' ).attr("data-folderid"));
+        upm.deleteFolder( folder_id );
+      });
+      $( "#button-move-server" ).click(function( e ) {
+        var server_id = Number($( '#server-info-name' ).attr("data-serverid"));
+        var folder_id = Number($( '#select-move-server option:selected').attr("data-folderid"));
+        upm.moveServer( server_id, folder_id );
+      });
+      $( "#button-moveFolder" ).click(function( e ) {
+        var folder_id = Number($( '#folder-info-name' ).attr("data-folderid"));
+        var parent_id = Number($( '#select-move-folder option:selected').attr("data-folderid"));
+        upm.moveFolder(folder_id, parent_id);
+      });
+      $( "#button-inventory-server" ).click(function( e ) {
+        var server_id = $( '#server-info-name' ).attr("data-serverid");
+        upm.inventoryServer( server_id );
+      });
+      $( "#select-server-update-output" ).change(function( e ) {
+        var server_update_output_id = Number($( '#select-server-update-output' ).val());
+        if( server_update_output_id >= 0 )
+          upm.getUpdateOutput( server_update_output_id );
+      });
+      $( "#button-save-global-config" ).click(function( e ) {
+        upm.saveGlobalConfig();
+      });
+      $( "#button-add-distribution-config" ).click(function( e ) {
+        upm.showAddDistributionConfig();
+      });
+      $( "#button-add-eol-config" ).click(function( e ) {
+        upm.showEOLConfig();
+      });
+      $( "#button-server-imp-updates" ).click(function( e ) {
+        upm.showImpUpdates();
+      });
+      $( "#button-server-reboot-add" ).click(function( e ) {
+        upm.showSheduleReboot();
+      });
+      $( "#button-save-shedule-reboot" ).click(function( e ) {
+        upm.setSheduleReboot();
+      });
+      $( "#button-server-reboot-del" ).click(function( e ) {
+        upm.deleteSheduleReboot();
+      });
+      $( "#button-edit-server" ).click(function( e ) {
+        var server_id = $( '#server-info-name' ).attr("data-serverid");
+        upm.showServerEdit(server_id);
+      });
+      $('#button-save-server-config' ).click(function( e ) {
+        upm.saveServerConfig();
+      });
+      $( "#button-edit-folder" ).click(function( e ) {
+        upm.editFolderConfig();
+      });
+      $('#button-save-folder-config' ).click(function( e ) {
+        upm.saveFolderConfig();
+      });
+      $( "#button-global-settings" ).click(function( e ) {
+        upm.showGlobalConfig();
+      });
+      $( "#button-save-distribution-config").click(function( e ) {
+        upm.saveDistributionConfig();
+      });
+      $( "#button-save-eol-config").click(function( e ) {
+        upm.saveEOLConfig();
+      });
+      $('#distribution-config').on("click", ".btn-delete-distribution", function( e ) {
+        var config_id = $( this ).attr("data-configid");
+        upm.deleteDistributionConfig(config_id);
+      });
+      $('#distribution-config').on("click", ".btn-edit-distribution", function( e ) {
+        var config_id = $( this ).attr("data-configid");
+        upm.showDistributionConfig(config_id);
+      });
+      $('#eol-config').on("click", ".btn-delete-eol", function( e ) {
+        var eol_id = $( this ).attr("data-eolid");
+        upm.deleteEOLConfig( eol_id );
+      });
+      $('#eol-config').on("click", ".btn-edit-eol", function( e ) {
+        var eol_id = $( this ).attr("data-eolid");
+        upm.showEOLConfigEdit(eol_id);
+      });
+      $('#important-updates').on("click", ".btn-iu-edit", function( e ) {
+        var iu_id = $( this ).attr("data-iu_id");
+        var server_id = $( this ).attr("data-server_id");
+        upm.editImportantUpdate(server_id, iu_id);
+      });
+      $('#important-updates').on("click", ".btn-iu-delete", function( e ) {
+        var iu_id = $( this ).attr("data-iu_id");
+        var server_id = $( this ).attr("data-server_id");
+        upm.deleteImportantUpdate(server_id, iu_id);
+      });
+      $('#button-add-iu' ).click(function( e ) {
+        var server_id = $( this ).attr("data-server_id");
+        upm.showAddImportantUpdate(server_id);
+      });
+      $('#server-updates').on("click", ".btn-changelog-package", function( e ) {
+        var update_id = $( this ).attr("data-update_id");
+        upm.showPackageChangelog(update_id, $( this ).attr('id'));
+      });
+      $('#server-updates').on("click", ".btn-info-package", function( e ) {
+        var update_id = $( this ).attr("data-update_id");
+        upm.showPackageInfo(update_id, $(this).attr('id'));
+      });
+      $('#server-updates').on("click", ".btn-update-package", function( e ) {
+        var update_id = $( this ).attr("data-update_id");
+        var server_id = $( this ).attr("data-server_id");
+        upm.updatePackage(server_id, update_id, $(this).attr('id'));
+      });
+      $('#server-updates').on("click", ".btn-update-mark-iu", function( e ) {
+        var server_id = $( this ).attr("data-server_id");
+        var update_id = $( this ).attr("data-update_id");
+        upm.updateMarkImportant(server_id, update_id);
+      });
+      $( "#button-save-important-update-comment").click(function( e ) {
+        upm.saveImportantUpdate();
+      });
+      $('#server-updates').on("click", ".btn-update-unmark-iu", function( e ) {
+        var iu_id = $( this ).attr("data-iu_id");
+        var server_id = $( this ).attr("data-server_id");
+        upm.deleteImportantUpdate(server_id, iu_id);
+      });
+      $( "#button-update-server").click(function( e ) {
+        upm.updateServer();
+      });
+
+      $('#switch-include-subfolders').click(function( e ) {
+        var folder_id = Number($('#folder-info-name').attr("data-folderid"));
+        upm.showSingleFolder( folder_id );
+      });
+
+      $('#switch-show-update-packages').click(function( e ) {
+        upm.setServerListColumns();
+      });
+
+      $('#switch-show-full-output').click(function( e ) {
+        upm.setServerListColumns();
+        if( $('#switch-show-full-output').is(':checked') ) {
+          $('#switch-show-update-packages').prop('disabled', true);
+          upm.scrollSeverListOutput();
+        } else {
+          $('#switch-show-update-packages').prop('disabled', false);
+        }
+      });
+
+      $('#input-searchfolder').keyup(function() {
+        upm.searchFolder();
+      });
+      $('#input-searchfolder').on('search', function(){
+        upm.searchFolder();
+      });
+
+      $('#input-searchserver-list').keyup(function() {
+        upm.searchServerList();
+      });
+      $('#input-searchserver-list').on('search', function(){
+        upm.searchServerList();
+      });
+
+      $('#button-inventory-all-server').click(function( e ) {
+        upm.inventoryServerList();
+      });
+
+      $('#button-update-all-server').click(function( e ) {
+        upm.updateServerList();
+      });
+
+      $('#button-all-server-reboot-add').click(function( e ) {
+        upm.showSheduleRebootServerList();
+      });
+
+      $('#button-all-server-reboot-del').click(function( e ) {
+        upm.rebootDelServerList();
+      });
+
+      $('#folder-server-list').on("change", 'td[class="server-select"] > div > input', function( e ) {
+        upm.testSelectedServer();
+      });
+
+      $('#folder-server-list').on("click", '.update-show-output', function( e ) {
+        var output = $(this).attr('data-output');
+        upm.serverListShowOutput(output);
+      });
+
+      $('#button-serverlist-select-all').click(function( e ) {
+        upm.serverListSelect();
+      });
+
+      $('#button-serverlist-unselect-all').click(function( e ) {
+        upm.serverListUnselect();
+      });
+
+      $('.modal').on("hidden.bs.modal", function (e) {
+        if($('.modal:visible').length) {
+          $('.modal-backdrop').first().css('z-index', parseInt($('.modal:visible').last().css('z-index')) - 10);
+          $('body').addClass('modal-open');
+        }
+      }).on("show.bs.modal", function (e) {
+        if($('.modal:visible').length) {
+          $('.modal-backdrop.in').first().css('z-index', parseInt($('.modal:visible').last().css('z-index')) + 10);
+          $(this).css('z-index', parseInt($('.modal-backdrop.in').first().css('z-index')) + 10);
+        }
+      });
+
+    </script>
+  </body>
+</html>
+
+<!--
+ vim: syntax=php filetype=php
+-->

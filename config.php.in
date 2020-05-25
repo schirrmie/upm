@@ -1,0 +1,10 @@
+<?php
+  return [
+    'database' => [
+      'host' => 'localhost',
+      'name' => 'upm',
+      'user' => 'upm',
+      'pass' => ''
+    ],
+  ];
+?>
