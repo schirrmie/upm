@@ -1,3 +1,4 @@
+.gitignore
 config.php
 export_mysql.sh
 INSTALL
