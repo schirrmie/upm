@@ -1,0 +1,341 @@
+-- MySQL dump 10.17  Distrib 10.3.22-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: upm
+-- ------------------------------------------------------
+-- Server version	10.3.22-MariaDB-0+deb10u1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `upm_distri_config`
+--
+
+DROP TABLE IF EXISTS `upm_distri_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_distri_config` (
+  `config_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `distribution_match` varchar(80) DEFAULT NULL,
+  `distribution_command` varchar(256) DEFAULT NULL,
+  `distribution_version_command` varchar(256) DEFAULT NULL,
+  `uptime_command` varchar(256) DEFAULT NULL,
+  `restart_command` varchar(512) DEFAULT NULL,
+  `updates_list_command` varchar(512) DEFAULT NULL,
+  `update_info_command` varchar(512) DEFAULT NULL,
+  `update_changelog_command` varchar(512) DEFAULT NULL,
+  `update_system_command` varchar(512) DEFAULT NULL,
+  `update_package_command` varchar(512) DEFAULT NULL,
+  `reboot_set_command` varchar(512) DEFAULT NULL,
+  `reboot_get_command` varchar(512) DEFAULT NULL,
+  `reboot_del_command` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`config_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_eol_config`
+--
+
+DROP TABLE IF EXISTS `upm_eol_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_eol_config` (
+  `eol_id` int(11) NOT NULL AUTO_INCREMENT,
+  `distribution_match` varchar(80) NOT NULL,
+  `EOL` date DEFAULT NULL,
+  PRIMARY KEY (`eol_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_folder`
+--
+
+DROP TABLE IF EXISTS `upm_folder`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_folder` (
+  `folder_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) DEFAULT NULL,
+  `ssh_port` int(6) unsigned DEFAULT NULL,
+  `ssh_username` varchar(80) DEFAULT NULL,
+  `ssh_private_key` text DEFAULT NULL,
+  `icon` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`folder_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_folder_folder`
+--
+
+DROP TABLE IF EXISTS `upm_folder_folder`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_folder_folder` (
+  `folder_folder_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `folder_parent_id` int(6) unsigned NOT NULL,
+  `folder_child_id` int(6) unsigned NOT NULL,
+  PRIMARY KEY (`folder_folder_id`),
+  KEY `fk_folder_parent_id` (`folder_parent_id`),
+  KEY `fk_folder_child_id` (`folder_child_id`),
+  CONSTRAINT `fk_folder_child_id` FOREIGN KEY (`folder_child_id`) REFERENCES `upm_folder` (`folder_id`),
+  CONSTRAINT `fk_folder_parent_id` FOREIGN KEY (`folder_parent_id`) REFERENCES `upm_folder` (`folder_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_folder_server`
+--
+
+DROP TABLE IF EXISTS `upm_folder_server`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_folder_server` (
+  `folder_server_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `folder_id` int(6) unsigned NOT NULL,
+  `server_id` int(6) unsigned NOT NULL,
+  PRIMARY KEY (`folder_server_id`),
+  KEY `fk_folder_id` (`folder_id`),
+  KEY `fk_server_id` (`server_id`),
+  CONSTRAINT `fk_folder_id` FOREIGN KEY (`folder_id`) REFERENCES `upm_folder` (`folder_id`),
+  CONSTRAINT `fk_server_id` FOREIGN KEY (`server_id`) REFERENCES `upm_server` (`server_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=817 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_global_config`
+--
+
+DROP TABLE IF EXISTS `upm_global_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_global_config` (
+  `default_ssh_private_key` text DEFAULT NULL,
+  `default_ssh_public_key` text DEFAULT NULL,
+  `default_ssh_port` int(6) unsigned DEFAULT NULL,
+  `default_ssh_username` varchar(80) DEFAULT NULL,
+  `default_distribution_command` varchar(256) DEFAULT NULL,
+  `default_distribution_version_command` varchar(256) DEFAULT NULL,
+  `max_parallel_tasks` int(6) unsigned DEFAULT NULL,
+  `version` varchar(16) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_server`
+--
+
+DROP TABLE IF EXISTS `upm_server`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_server` (
+  `server_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) DEFAULT NULL,
+  `hostname` varchar(80) DEFAULT NULL,
+  `ssh_port` int(6) unsigned DEFAULT NULL,
+  `ssh_username` varchar(80) DEFAULT NULL,
+  `ssh_private_key` text DEFAULT NULL,
+  `last_inventoried` datetime DEFAULT NULL,
+  `last_updated` datetime DEFAULT NULL,
+  `uptime` varchar(80) DEFAULT NULL,
+  `updates` int(6) unsigned DEFAULT NULL,
+  `restart_required` tinyint(1) DEFAULT NULL,
+  `distribution` varchar(80) DEFAULT NULL,
+  `distribution_version` varchar(16) DEFAULT NULL,
+  `user_distribution` varchar(80) DEFAULT NULL,
+  `EOL` datetime DEFAULT NULL,
+  `sheduled_restart` datetime DEFAULT NULL,
+  PRIMARY KEY (`server_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=893 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_server_important_updates`
+--
+
+DROP TABLE IF EXISTS `upm_server_important_updates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_server_important_updates` (
+  `important_update_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `server_id` int(6) unsigned DEFAULT NULL,
+  `package` varchar(128) DEFAULT NULL,
+  `comment` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`important_update_id`),
+  KEY `fk_siu_server_id` (`server_id`),
+  CONSTRAINT `fk_siu_server_id` FOREIGN KEY (`server_id`) REFERENCES `upm_server` (`server_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_server_update_output`
+--
+
+DROP TABLE IF EXISTS `upm_server_update_output`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_server_update_output` (
+  `server_update_output_id` int(11) NOT NULL AUTO_INCREMENT,
+  `server_id` int(11) NOT NULL,
+  `update_date` datetime NOT NULL,
+  `output` mediumtext DEFAULT NULL,
+  PRIMARY KEY (`server_update_output_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3222 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `upm_server_updates`
+--
+
+DROP TABLE IF EXISTS `upm_server_updates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_server_updates` (
+  `update_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `server_id` int(6) unsigned DEFAULT NULL,
+  `package` varchar(1024) DEFAULT NULL,
+  `info` text DEFAULT NULL,
+  `changelog` text DEFAULT NULL,
+  `inventoried` datetime DEFAULT NULL,
+  PRIMARY KEY (`update_id`),
+  KEY `fk_su_server_id` (`server_id`),
+  CONSTRAINT `fk_su_server_id` FOREIGN KEY (`server_id`) REFERENCES `upm_server` (`server_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=84548 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-05-25 13:38:00
+-- MySQL dump 10.17  Distrib 10.3.22-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: upm
+-- ------------------------------------------------------
+-- Server version	10.3.22-MariaDB-0+deb10u1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `upm_distri_config`
+--
+
+DROP TABLE IF EXISTS `upm_distri_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_distri_config` (
+  `config_id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `distribution_match` varchar(80) DEFAULT NULL,
+  `distribution_command` varchar(256) DEFAULT NULL,
+  `distribution_version_command` varchar(256) DEFAULT NULL,
+  `uptime_command` varchar(256) DEFAULT NULL,
+  `restart_command` varchar(512) DEFAULT NULL,
+  `updates_list_command` varchar(512) DEFAULT NULL,
+  `update_info_command` varchar(512) DEFAULT NULL,
+  `update_changelog_command` varchar(512) DEFAULT NULL,
+  `update_system_command` varchar(512) DEFAULT NULL,
+  `update_package_command` varchar(512) DEFAULT NULL,
+  `reboot_set_command` varchar(512) DEFAULT NULL,
+  `reboot_get_command` varchar(512) DEFAULT NULL,
+  `reboot_del_command` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`config_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `upm_distri_config`
+--
+
+LOCK TABLES `upm_distri_config` WRITE;
+/*!40000 ALTER TABLE `upm_distri_config` DISABLE KEYS */;
+INSERT INTO `upm_distri_config` VALUES (1,'Debian 8*','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','[ -f /var/run/reboot-required ] && echo 1 || echo 0','set -o pipefail; apt-get -s dist-upgrade | awk \'/^Inst/ { print $2 }\'','apt-cache -q --no-all-versions show ${PackageName}','apt changelog ${PackageName}  | head -n 99','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q upgrade','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q --only-upgrade install ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | cut -d\" \" -f2-5); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(2,'Ubuntu','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','[ -f /var/run/reboot-required ] && echo 1 || echo 0','set -o pipefail; apt-get -s dist-upgrade | awk \'/^Inst/ { print $2 }\'','apt-cache -q --no-all-versions show ${PackageName}','apt changelog ${PackageName}','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q full-upgrade','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q --only-upgrade install ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | cut -d\" \" -f2-5); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(3,'OracleServer 6*','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','echo \"2\"','set -o pipefail; sudo yum list updates | tr \'\\n\' \' \' | sed -n -e \'s/^.*Updated Packages //p\' | xargs -n3 | awk \'{print $1}\'','yum -q info ${PackageName}','','sudo yum -y upgrade','sudo yum -y update ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | awk \'{print $2\" \"$3}\'); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(4,'CentOS','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','needs-restarting -r > /dev/null && echo \"0\" || echo \"1\"','set -o pipefail; yum list updates | tr \'\\n\' \' \' | sed -n -e \'s/^.*Updated Packages //p\' | xargs -n3 | awk \'{print $1}\'','yum -q info ${PackageName}','','sudo yum -y upgrade','sudo yum -y update ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | awk \'{print $2\" \"$3}\'); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(5,'Debian 9*','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','[ -f /var/run/reboot-required ] && echo 1 || echo 0','set -o pipefail; apt-get -s dist-upgrade | awk \'/^Inst/ { print $2 }\'','apt-cache -q --no-all-versions show ${PackageName}','apt changelog ${PackageName} | head -n 99','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q full-upgrade','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q --only-upgrade install ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | cut -d\" \" -f2-5); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(6,'Debian 10*','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','[ -f /var/run/reboot-required ] && echo 1 || echo 0','set -o pipefail; apt-get -s dist-upgrade | awk \'/^Inst/ { print $2 }\'','apt-cache -q --no-all-versions show ${PackageName}','apt changelog ${PackageName} | head -n 99','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q full-upgrade','sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\'--force-confold\' -y -q --only-upgrade install ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | cut -d\" \" -f2-5); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi'),(9,'OracleServer 7*','lsb_release -si','lsb_release -sr','stat -c %Z /proc/','needs-restarting -r > /dev/null && echo \"0\" || echo \"1\"','set -o pipefail; sudo yum list updates | tr \'\\n\' \' \' | sed -n -e \'s/^.*Updated Packages //p\' | xargs -n3 | awk \'{print $1}\'','yum -q info ${PackageName}','','sudo yum -y upgrade','sudo yum -y update ${PackageName}','echo \"sudo shutdown -r now\" | at -M -q a -t ${YYYY}${MM}${DD}${hh}${mm}','D=$(atq -q a | awk \'{print $2\" \"$3\" \"$4\" \"$5}\'); if [[ $D != \"\" ]]; then date +\"%s\" --date=\"$D\"; fi','D=$(atq -q a | cut -f1); if [[ $D != \"\" ]]; then atrm $D; fi');
+/*!40000 ALTER TABLE `upm_distri_config` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-05-25 13:38:01
+-- MySQL dump 10.17  Distrib 10.3.22-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: upm
+-- ------------------------------------------------------
+-- Server version	10.3.22-MariaDB-0+deb10u1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `upm_eol_config`
+--
+
+DROP TABLE IF EXISTS `upm_eol_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `upm_eol_config` (
+  `eol_id` int(11) NOT NULL AUTO_INCREMENT,
+  `distribution_match` varchar(80) NOT NULL,
+  `EOL` date DEFAULT NULL,
+  PRIMARY KEY (`eol_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `upm_eol_config`
+--
+
+LOCK TABLES `upm_eol_config` WRITE;
+/*!40000 ALTER TABLE `upm_eol_config` DISABLE KEYS */;
+INSERT INTO `upm_eol_config` VALUES (1,'Debian 7.*','2018-04-04'),(3,'Ubuntu 16.04','2021-04-01'),(4,'OracleServer 5*','2017-03-01'),(5,'OracleServer 6*','2021-03-01'),(6,'OracleServer 7*','2024-07-01'),(7,'Debian 8.*','2020-06-30'),(8,'Debian 9.*','2022-06-01'),(9,'Ubuntu 18.04','2023-04-01'),(10,'Debian 10*','2022-06-01'),(11,'CentOS 7*','2024-06-30');
+/*!40000 ALTER TABLE `upm_eol_config` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-05-25 13:38:02
+INSERT INTO `upm_global_config` (default_ssh_port, default_distribution_command, default_distribution_version_command, version) VALUES (22,'lsb_release -si','lsb_release -sr', '0.1.0');
