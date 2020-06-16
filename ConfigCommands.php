@@ -16,6 +16,9 @@
   require_once 'phpseclib/Crypt/Twofish.php';
   require_once 'phpseclib/Crypt/RSA.php';
   require_once 'meekrodb.2.3.class.php';
+  require_once 'FolderCommands.php';
+  require_once 'UpdateCommands.php';
+  require_once 'ServerCommands.php';
 
   abstract class CommandNames {
     const Distribution = "distribution_command";
@@ -45,22 +48,22 @@
         DB::$throw_exception_on_error = true;
         DB::$throw_exception_on_nonsql_error = true;
 
-        UPM::$ssh = null;
+        ConfigCommands::$ssh = null;
         
         // session for saving config between ajax calls
         session_start();
         session_write_close();
         if( !isset($_SESSION['default_ssh_private_key']) ) {
-            UPM::loadGlobalConfig();
+            ConfigCommands::loadGlobalConfig();
         }
         if( !isset($_SESSION['distribution_config']) ) {
-            UPM::loadDistributionConfig();
+            ConfigCommands::loadDistributionConfig();
         }
         if( !isset($_SESSION['eol_config']) ) {
-            UPM::loadEolConfig();
+            ConfigCommands::loadEolConfig();
         }
     }
-    private static function updateServerInfo($server_id, $uptime, $restart_required, $distribution, $distribution_version, $EOL, $sheduled_restart, $inventory_time) {
+    public static function updateServerInfo($server_id, $uptime, $restart_required, $distribution, $distribution_version, $EOL, $sheduled_restart, $inventory_time) {
 			try {
 				DB::update("upm_server", array(
 					'uptime' => $uptime,
@@ -91,7 +94,7 @@
           'ssh_private_key' => $ssh_private_key,
           'ssh_port' => $ssh_port,
           'ssh_username' => $ssh_username), "server_id=%d", $server_id);
-        UPM::getServerInfo($server_id, $serverinfo);
+        ServerCommands::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -155,7 +158,7 @@
           'update_changelog_command' => $package_changelog, 'update_system_command' => $system_update,
           'update_package_command' => $package_update, 'reboot_set_command' => $shedule_reboot_add,
           'reboot_get_command' => $shedule_reboot_get, 'reboot_del_command' => $shedule_reboot_del) );
-        UPM::loadDistributionConfig();
+        ConfigCommands::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -175,7 +178,7 @@
           'update_changelog_command' => $package_changelog, 'update_system_command' => $system_update,
           'update_package_command' => $package_update, 'reboot_set_command' => $shedule_reboot_add,
           'reboot_get_command' => $shedule_reboot_get, 'reboot_del_command' => $shedule_reboot_del), "config_id=%d", $config_id);
-        UPM::loadDistributionConfig();
+        ConfigCommands::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -186,7 +189,7 @@
     public static function deleteDistributionConfig($config_id) {
       try {
         DB::delete('upm_distri_config', "config_id=%d", $config_id);
-        UPM::loadDistributionConfig();
+        ConfigCommands::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -194,7 +197,7 @@
         return false;
       }
     }
-    private static function loadDistributionConfig() {
+    public static function loadDistributionConfig() {
       try {
         $results = DB::query("SELECT * FROM upm_distri_config");
         $configs = array();
@@ -239,7 +242,7 @@
       try {
         DB::insert('upm_eol_config',
           array( 'distribution_match' => $distri_name, 'EOL' => $eol) );
-        UPM::loadEolConfig();
+        ConfigCommands::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -252,7 +255,7 @@
         DB::update("upm_eol_config", array(
           'distribution_match' => $distri_name,
           'EOL' => $eol), "eol_id=%d", $eol_id);
-        UPM::loadEolConfig();
+        ConfigCommands::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -263,7 +266,7 @@
     public static function deleteEolConfig($eol_id) {
       try {
         DB::delete('upm_eol_config', "eol_id=%d", $eol_id);
-        UPM::loadEolConfig();
+        ConfigCommands::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -315,7 +318,7 @@
             'default_ssh_port' => $default_ssh_port, 'default_ssh_username' => $default_ssh_username,
             'default_ssh_private_key' => $default_ssh_private_key), '1=1' );
         }
-        UPM::loadGlobalConfig();
+        ConfigCommands::loadGlobalConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -324,15 +327,15 @@
       }
 
     }
-    private static function serverDetectDistribution($server_id, &$distri, &$distri_version, &$error) {
-        if( !UPM::serverRunCommand($server_id, $_SESSION['default_distribution_command'], $command_ret, $error) ) {
+    public static function serverDetectDistribution($server_id, &$distri, &$distri_version, &$error) {
+        if( !ServerCommands::serverRunCommand($server_id, $_SESSION['default_distribution_command'], $command_ret, $error) ) {
           return false;
         }
         $distri = $command_ret;
-        if( !UPM::serverRunCommand($server_id, $_SESSION['default_distribution_version_command'], $command_ret, $error) )
+        if( !ServerCommands::serverRunCommand($server_id, $_SESSION['default_distribution_version_command'], $command_ret, $error) )
           return false;
         $distri_version = $command_ret;
-        if( !UPM::serverInsertDistribution($server_id, $distri, $distri_version) ) {
+        if( !ConfigCommands::serverInsertDistribution($server_id, $distri, $distri_version) ) {
           $error = "Can't update server info with distribution + version!";
           return false;
         }
@@ -348,6 +351,59 @@
             error_log( $e->getQuery() );
             return false;
         }
+    }
+    public static function loadGlobalConfig() {
+      try {
+        $config = DB::queryFirstRow("SELECT * FROM upm_global_config");
+        session_start();
+        $_SESSION['default_ssh_private_key'] = $config['default_ssh_private_key'];
+        $_SESSION['default_ssh_public_key'] = $config['default_ssh_public_key'];
+        $_SESSION['default_ssh_port'] = $config['default_ssh_port'];
+        $_SESSION['default_ssh_username'] = $config['default_ssh_username'];
+        $_SESSION['default_distribution_command'] = $config['default_distribution_command'];
+        $_SESSION['default_distribution_version_command'] = $config['default_distribution_version_command'];
+        session_write_close();
+        return true;
+      } catch(MeekroDBException $e) {
+        error_log( "DB error " . $e->getMessage() );
+        error_log( $e->getQuery() );
+        return false;
+      }
+    }
+    public static function getDistributionCommand($distri, $distri_version, $commandname, &$cmd) {
+      foreach( $_SESSION['distribution_config'] as &$value) {
+        if( $value['distribution_match'] == $distri . " " . $distri_version ) {
+          $cmd = $value[$commandname];
+          return true;
+        }
+      }
+      unset($value);
+
+      foreach( $_SESSION['distribution_config']  as &$value) {
+        if( $value['distribution_match'] == $distri ) {
+          $cmd = $value[$commandname];
+          return true;
+        }
+      }
+      unset($value);
+
+      foreach( $_SESSION['distribution_config']  as &$value) {
+        if( fnmatch($value['distribution_match'], $distri . " " . $distri_version) ) {
+          $cmd = $value[$commandname];
+          return true;
+        }
+      }
+      unset($value);
+
+      foreach( $_SESSION['distribution_config']  as &$value) {
+        if( fnmatch($value['distribution_match'], $distri) ) {
+          $cmd = $value[$commandname];
+          return true;
+        }
+      }
+      unset($value);
+
+      return false;
     }
   }
   ConfigCommands::init();

@@ -16,6 +16,9 @@
   require_once 'phpseclib/Crypt/Twofish.php';
   require_once 'phpseclib/Crypt/RSA.php';
   require_once 'meekrodb.2.3.class.php';
+  require_once 'ServerCommands.php';
+  require_once 'UpdateCommands.php';
+  require_once 'ConfigCommands.php';
   
   abstract class CommandNames {
     const Distribution = "distribution_command";
@@ -46,19 +49,19 @@
         DB::$throw_exception_on_error = true;
         DB::$throw_exception_on_nonsql_error = true;
 
-        UPM::$ssh = null;
+        ConfigCommands::$ssh = null;
         
         // session for saving config between ajax calls
         session_start();
         session_write_close();
         if( !isset($_SESSION['default_ssh_private_key']) ) {
-            UPM::loadGlobalConfig();
+            ConfigCommands::loadGlobalConfig();
         }
         if( !isset($_SESSION['distribution_config']) ) {
-            UPM::loadDistributionConfig();
+          ConfigCommands::loadDistributionConfig();
         }
         if( !isset($_SESSION['eol_config']) ) {
-            UPM::loadEolConfig();
+          ConfigCommands::loadEolConfig();
         }
     }
     public static function getFolders(&$folders) {
@@ -89,7 +92,7 @@
         DB::insert('upm_folder', array( 'name' => $foldername) );
         $folder_id = DB::insertId();
         if ( $parent_id != null) {
-          UPM::moveFolder($folder_id, $parent_id);
+          FolderCommands::moveFolder($folder_id, $parent_id);
         }
         return $folder_id;
       } catch(MeekroDBException $e) {
@@ -150,9 +153,9 @@
         error_log("Can't delete Root folder!");
         return false;
       }
-      if( !UPM::deleteFolderFromFolderServer( $folder_id) )
+      if( !FolderCommands::deleteFolderFromFolderServer( $folder_id) )
         return false;
-      if( !UPM::deleteFolderFromFolderFolder( $folder_id) )
+      if( !FolderCommands::deleteFolderFromFolderFolder( $folder_id) )
         return false;
 
       try {
@@ -174,17 +177,68 @@
         return false;
       }
     }
-    private static function getFolderIdFromServer( $server_id ) {
-        try {
-          $folder_id = DB::queryFirstField("SELECT folder_id FROM upm_folder_server WHERE server_id=%d", $server_id);
-          if( $folder_id == null )
-            return -1;
-          return $folder_id;
-        } catch(MeekroDBException $e) {
-          error_log( "DB error " . $e->getMessage() );
-          error_log( $e->getQuery() );
-          return -1;
+
+    public static function massImport( $importdata ) {
+      $j = 0;
+      foreach(preg_split("/((\r?\n)|(\r\n?))/", $importdata) as $string) {
+        $data[$j] = $string;
+        $j++;
+      }
+
+      $dataindex = 0;
+      if( !FolderCommands::recursiveImport(0, $data, $dataindex, 0) )
+        return false;
+      return true;
+    }
+    private static function recursiveImport($ParentID, $data, &$dataindex, $WhiteSpaceCount) {
+      $OldWhiteSpaceCount = $WhiteSpaceCount;
+      $NewParentID = $ParentID;
+
+      for( ; $dataindex < sizeof($data); $dataindex++ ) {
+        $string = $data[$dataindex];
+
+        if( $string == "" )
+          return true;
+        $len = strlen($string);
+        $string = ltrim($string);
+        $len2 = strlen($string);
+
+        $WhiteSpaceCount = $len - $len2;
+      
+        if( $WhiteSpaceCount > $OldWhiteSpaceCount ) {
+          if( !FolderCommands::recursiveImport($NewParentID, $data, $dataindex, $WhiteSpaceCount) ) {
+            return false;
+          }
+          $dataindex--;
+          continue;
+        } else if ( $WhiteSpaceCount < $OldWhiteSpaceCount ) {
+          return true;
         }
+
+        $name = substr($string, 1);
+        $char = $string[0];
+        switch($char) {
+          case '+':
+            $ServerID = ServerCommands::addServer($name, $name, $ParentID);
+            if( $ServerID == -1 ) {
+              return false;
+            }
+            break;
+          case '#':
+            $NewParentID = FolderCommands::getFirstFolderByName( $name );
+            if( $NewParentID > 0 )
+              break;
+            $NewParentID = FolderCommands::addFolder($name, $ParentID);
+            if( $NewParentID == -1 ) {
+              return false;
+            }
+            break;
+          default:
+            error_log("wrong format string: " . $string . " char: " . $char);
+            return false;
+        }
+      }
+      return true;
     }
 
   }

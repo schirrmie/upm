@@ -16,6 +16,9 @@
   require_once 'phpseclib/Crypt/Twofish.php';
   require_once 'phpseclib/Crypt/RSA.php';
   require_once 'meekrodb.2.3.class.php';
+  require_once 'FolderCommands.php';
+  require_once 'UpdateCommands.php';
+  require_once 'ConfigCommands.php';
 
   abstract class CommandNames {
     const Distribution = "distribution_command";
@@ -44,19 +47,19 @@
       DB::$throw_exception_on_error = true;
       DB::$throw_exception_on_nonsql_error = true;
 
-      UPM::$ssh = null;
+      ServerCommands::$ssh = null;
       
       // session for saving config between ajax calls
       session_start();
       session_write_close();
       if( !isset($_SESSION['default_ssh_private_key']) ) {
-        UPM::loadGlobalConfig();
+        ConfigCommands::loadGlobalConfig();
       }
       if( !isset($_SESSION['distribution_config']) ) {
-        UPM::loadDistributionConfig();
+        ConfigCommands::loadDistributionConfig();
       }
       if( !isset($_SESSION['eol_config']) ) {
-        UPM::loadEolConfig();
+        ConfigCommands::loadEolConfig();
       }
     }
     public static function getServers(&$servers) {
@@ -79,7 +82,7 @@
 
 					$server_id = DB::insertId();
 					if ( $folder_id != null ) {
-					if( !UPM::moveServer($server_id, $folder_id) )
+					if( !ServerCommands::moveServer($server_id, $folder_id) )
 
 							return -1;
 					}
@@ -142,46 +145,46 @@
     }
 		public static function inventoryServer($server_id, &$serverinfo, &$error) {
       $inventory_time = date("Y-m-d H:i:s");
-      if( !UPM::serverRunCommandName($server_id, CommandNames::Uptime, $uptime, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::Uptime, $uptime, $error) ) {
         return false;
       }
-      if( !UPM::serverRunCommandName($server_id, CommandNames::RestartRequired, $restart_required, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::RestartRequired, $restart_required, $error) ) {
         return false;
       }
-      if( !UPM::serverRunCommandName($server_id, CommandNames::RebootGet, $sheduled_restart, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::RebootGet, $sheduled_restart, $error) ) {
         return false;
       }
-      if( !UPM::serverRunCommandName($server_id, CommandNames::Distribution, $distribution, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::Distribution, $distribution, $error) ) {
         return false;
       }
-      if( !UPM::serverRunCommandName($server_id, CommandNames::DistributionVersion, $distribution_version, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::DistributionVersion, $distribution_version, $error) ) {
         return false;
       }
-      if( !UPM::serverRunCommandName($server_id, CommandNames::ListUpdates, $update_list_str, $error) ) {
+      if( !ServerCommands::serverRunCommandName($server_id, CommandNames::ListUpdates, $update_list_str, $error) ) {
         return false;
       }
 
       if( $update_list_str == "" ) {
-        if( !UPM::serverClearUpdates($server_id) ) {
+        if( !UpdateCommands::serverClearUpdates($server_id) ) {
           $error = "Error while clearing server updates";
           return false;
         }
       } else {
         $update_list = array_map('trim', explode("\n", $update_list_str));
         foreach( $update_list as &$value) {
-          if( ! UPM::addServerUpdate($server_id, $value) ) {
+          if( ! UpdateCommands::addServerUpdate($server_id, $value) ) {
             $error = "Error while adding server update to table!";
             return false;
           }
         }
-        if( !UPM::serverDeleteOldUpdates($server_id, $update_list) ) {
+        if( !UpdateCommands::serverDeleteOldUpdates($server_id, $update_list) ) {
           $error = "Error while deleting old server updates in table!";
           return false;
         }
         unset($value);
       }
 
-      if( ! UPM::serverGetEOL($server_id, $EOL) ) {
+      if( ! ServerCommands::serverGetEOL($server_id, $EOL) ) {
         $EOL = null;
       }
       if( $sheduled_restart > 0 )
@@ -189,12 +192,12 @@
       else
         $sheduled_restart = null;
 
-      if( ! UPM::updateServerInfo($server_id, $uptime, $restart_required,
+      if( ! ConfigCommands::updateServerInfo($server_id, $uptime, $restart_required,
         $distribution, $distribution_version, $EOL, $sheduled_restart, $inventory_time) ) {
         $error = "Error while updating host info in table";
         return false;
       }
-      if( !UPM::getServerInfo($server_id, $serverinfo)) {
+      if( !ServerCommands::getServerInfo($server_id, $serverinfo)) {
         $error = "Error while getting host info from table!";
         return false;
       }
@@ -212,11 +215,11 @@
     }
     // ToDo delete server output and more?
     public static function deleteServer($server_id) {
-      if( !UPM::deleteAllImportantUpdates($server_id) )
+      if( !UpdateCommands::deleteAllImportantUpdates($server_id) )
         return false;
-      if( !UPM::deleteAllUpdates($server_id) )
+      if( !UpdateCommands::deleteAllUpdates($server_id) )
         return false;
-      if( !UPM::deleteServerFromAnyFolder( $server_id) )
+      if( !ServerCommands::deleteServerFromAnyFolder( $server_id) )
         return false;
 
       try {
@@ -229,27 +232,39 @@
       }
 		}
 		public static function serverRunCommandName($server_id, $commandname, &$command_ret, &$error) {
-      if( !UPM::getServerDistribution($server_id, $distri, $distri_version) ) {
-        if( !UPM::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
+      if( !ServerCommands::getServerDistribution($server_id, $distri, $distri_version) ) {
+        if( !ConfigCommands::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
           $error = "Can't detect distribution: " . $error2;
           return false;
         }
       }
-      if( !UPM::getDistributionCommand($distri, $distri_version, $commandname, $cmd) ) {
+      if( !ConfigCommands::getDistributionCommand($distri, $distri_version, $commandname, $cmd) ) {
         $error = "No command for $commandname specified for distribution " . $distri . " " . $distri_version;
         return false;
       }
-      return UPM::serverRunCommand($server_id, $cmd, $command_ret, $error);
+      return ServerCommands::serverRunCommand($server_id, $cmd, $command_ret, $error);
     }
+    private static function getFolderIdFromServer( $server_id ) {
+      try {
+        $folder_id = DB::queryFirstField("SELECT folder_id FROM upm_folder_server WHERE server_id=%d", $server_id);
+        if( $folder_id == null )
+          return -1;
+        return $folder_id;
+      } catch(MeekroDBException $e) {
+        error_log( "DB error " . $e->getMessage() );
+        error_log( $e->getQuery() );
+        return -1;
+      }
+  }
     public static function serverRunCommand($server_id, $command, &$command_ret, &$error) {
-      if( !UPM::getServerInfo($server_id, $server) ) {
+      if( !ServerCommands::getServerInfo($server_id, $server) ) {
         $error = "Can't receive server!";
         return false;
       }
-      $folder_id = UPM::getFolderIdFromServer( $server_id );
+      $folder_id = ServerCommands::getFolderIdFromServer( $server_id );
       $folder = null;
       if( $folder_id >= 0 ) {
-        if( !UPM::getFolderInfo($folder_id, $folder) ) {
+        if( !FolderCommands::getFolderInfo($folder_id, $folder) ) {
           $error = "Can't receive folder!";
           return false;
         }
@@ -281,13 +296,13 @@
       else
         $ssh_username = $_SESSION['default_ssh_username'];
 
-      $ret =  UPM::sshRunCommand($ssh_hostname, $ssh_port, $ssh_username, $ssh_key,
+      $ret =  ServerCommands::sshRunCommand($ssh_hostname, $ssh_port, $ssh_username, $ssh_key,
       $command, $command_ret, $error); 
 
       return $ret;
     }
-    private static function getServerDistribution($server_id, &$distri, &$distri_version) {
-      if( !UPM::getServerInfo($server_id, $server) )
+    public static function getServerDistribution($server_id, &$distri, &$distri_version) {
+      if( !ServerCommands::getServerInfo($server_id, $server) )
         return false;
 
       $distribution_config = array();
@@ -307,9 +322,9 @@
       return true;
     }
 		private static function serverGetEOL($server_id, &$EOL) {
-      if( ! UPM::getServerDistribution($server_id, $distri, $distri_version) )
+      if( ! ServerCommands::getServerDistribution($server_id, $distri, $distri_version) )
         return false;
-      return UPM::getEOLByDistribution($distri, $distri_version, $EOL);
+      return ServerCommands::getEOLByDistribution($distri, $distri_version, $EOL);
 		}
 		private static function getEOLByDistribution($distri, $distri_version, &$EOL) {
       if( $distri_version != "" )
@@ -335,13 +350,13 @@
 		}
 		public static function addSheduleReboot($server_id, $timestamp, &$sheduled_restart, &$serverinfo) {
       try {
-        if( !UPM::getServerDistribution($server_id, $distri, $distri_version) ) {
-          if( !UPM::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
+        if( !ServerCommands::getServerDistribution($server_id, $distri, $distri_version) ) {
+          if( !ConfigCommands::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
             $error = "Can't detect distribution: " . $error2;
             return false;
           }
         }
-        if( !UPM::getDistributionCommand($distri, $distri_version, CommandNames::RebootSet, $cmd) ) {
+        if( !ConfigCommands::getDistributionCommand($distri, $distri_version, CommandNames::RebootSet, $cmd) ) {
           $error = "No command for $commandname specified for distribution " . $distri . " " . $distri_version;
           return false;
         }
@@ -358,10 +373,10 @@
         $cmd = str_replace('${DD}', $DD, $cmd);
         $cmd = str_replace('${hh}', $hh, $cmd);
         $cmd = str_replace('${mm}', $mm, $cmd);
-        if( !UPM::serverRunCommand($server_id, $cmd, $output, $error) ) {
+        if( !ServerCommands::serverRunCommand($server_id, $cmd, $output, $error) ) {
           return false;
         }
-        if( !UPM::serverRunCommandName($server_id, CommandNames::RebootGet, $sheduled_restart, $error) ) {
+        if( !ServerCommands::serverRunCommandName($server_id, CommandNames::RebootGet, $sheduled_restart, $error) ) {
           return false;
         }
         if( $sheduled_restart > 0 )
@@ -370,7 +385,7 @@
           $sheduled_restart = null;
 
         DB::update("upm_server", array('sheduled_restart' => $sheduled_restart), "server_id=%d", $server_id);
-        UPM::getServerInfo($server_id, $serverinfo);
+        ServerCommands::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -380,28 +395,82 @@
     }
     public static function delSheduleReboot($server_id, &$serverinfo) {
       try {
-        if( !UPM::getServerDistribution($server_id, $distri, $distri_version) ) {
-          if( !UPM::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
+        if( !ServerCommands::getServerDistribution($server_id, $distri, $distri_version) ) {
+          if( !ConfigCommands::serverDetectDistribution($server_id, $distri, $distri_version, $error2) ) {
             $error = "Can't detect distribution: " . $error2;
             return false;
           }
         }
-        if( !UPM::getDistributionCommand($distri, $distri_version, CommandNames::RebootSet, $cmd) ) {
+        if( !ConfigCommands::getDistributionCommand($distri, $distri_version, CommandNames::RebootSet, $cmd) ) {
           $error = "No command for $commandname specified for distribution " . $distri . " " . $distri_version;
           return false;
         }
-        if( !UPM::serverRunCommandName($server_id, CommandNames::RebootDel, $output, $error) ) {
+        if( !ServerCommands::serverRunCommandName($server_id, CommandNames::RebootDel, $output, $error) ) {
           return false;
         }
 
         DB::update("upm_server", array('sheduled_restart' => null), "server_id=%d", $server_id);
-        UPM::getServerInfo($server_id, $serverinfo);
+        ServerCommands::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
         error_log( $e->getQuery() );
         return false;
       }
+    }
+    public static function sshRunCommand($ssh_hostname, $ssh_port, $ssh_username, $ssh_key,$command, &$command_ret, &$error) {
+      try { 
+       $originalConnectionTimeout = ini_get('default_socket_timeout');
+       ini_set('default_socket_timeout', 2);
+ 
+       if( ServerCommands::$ssh != null ) {
+         $command_ret = trim(ServerCommands::$ssh->exec( $command ));
+         $command_exit_code = ServerCommands::$ssh->getExitStatus();
+ 
+         //error_log( "hostname: $ssh_hostname reuse - $command_ret" );
+         if( $command_exit_code != 0 ) {
+           $error = "Error! executing command: $command return: $command_ret";
+           return false;
+         } else {
+           return true;
+         }
+       }
+ 
+       ServerCommands::$ssh = new phpseclib\Net\SSH2( $ssh_hostname, $ssh_port );
+ 
+       ini_set('default_socket_timeout', $originalConnectionTimeout);
+ 
+       if( !ServerCommands::$ssh ) {
+         $error = "Error while connecting to host [$ssh_hostname].\n" . error_get_last()['message'];
+         return false;
+       }
+ 
+       $key = new phpseclib\Crypt\RSA();
+       $key->loadKey( $ssh_key );
+ 
+       if( !$key ) {
+         $error = "Error while loading private key!\n" . error_get_last()['message'];
+         return false;
+       }
+       $login = ServerCommands::$ssh->login($ssh_username, $key);
+       if( !$login ) {
+         $error = "Error while loging in, with user [" . $ssh_username . "]. Check username or ssh private key!\n" . error_get_last()['message'];
+         return false;
+       }
+       ServerCommands::$ssh->setTimeout(0);
+       $command_ret = trim(ServerCommands::$ssh->exec( $command ));
+       $command_exit_code = ServerCommands::$ssh->getExitStatus();
+       if( $command_exit_code != 0 ) {
+         $error = "Error! executing command: $command return: $command_ret";
+         return false;
+       }
+       //error_log( "hostname: $ssh_hostname new - $command_ret" );
+ 
+      } catch (Exception $e) {
+        $error = $e->getMessage();
+        return false;
+      }
+       return true;
     }
 }
 ServerCommands::init();
