@@ -174,16 +174,6 @@
         return false;
       }
     }
-    public static function getFolderInfo($folder_id, &$folderinfo) {
-        try {
-          $folderinfo = DB::queryFirstRow("SELECT * FROM upm_folder WHERE folder_id=%d", $folder_id);
-          return true;
-        } catch(MeekroDBException $e) {
-          error_log( "DB error " . $e->getMessage() );
-          error_log( $e->getQuery() );
-          return false;
-        }
-    }
     private static function getFolderIdFromServer( $server_id ) {
         try {
           $folder_id = DB::queryFirstField("SELECT folder_id FROM upm_folder_server WHERE server_id=%d", $server_id);

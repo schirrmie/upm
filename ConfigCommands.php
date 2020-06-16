@@ -225,20 +225,6 @@
         return false;
       }
     }
-    public static function getEolOverview(&$configs) {
-        try {
-          $results = DB::query("SELECT * FROM upm_eol_config ORDER BY distribution_match");
-          $configs = array();
-          foreach( $results as $row ) {
-            array_push($configs, $row);
-          }
-          return true;
-        } catch(MeekroDBException $e) {
-          error_log( "DB error " . $e->getMessage() );
-          error_log( $e->getQuery() );
-          return false;
-        }
-    }
     public static function getEolConfig($eol_id, &$eol) {
       try {
         $eol = DB::queryFirstRow("SELECT * FROM upm_eol_config WHERE eol_id=%d", $eol_id);
@@ -302,24 +288,6 @@
         return false;
       }
 		}
-		private static function updateServerInfo($server_id, $uptime, $restart_required, $distribution, $distribution_version, $EOL, $sheduled_restart, $inventory_time) {
-      try {
-        DB::update("upm_server", array(
-          'uptime' => $uptime,
-          'restart_required' => $restart_required,
-          'distribution' => $distribution,
-          'distribution_version' => $distribution_version,
-          'EOL' => $EOL,
-          'sheduled_restart' => $sheduled_restart,
-          'last_inventoried' => $inventory_time), "server_id=%d", $server_id);
-        return true;
-      } catch(MeekroDBException $e) {
-        error_log( "DB error " . $e->getMessage() );
-        error_log( $e->getQuery() );
-        return false;
-      }
-
-		}
 		public static function getGlobalConfig(&$config) {
       try {
         $config = DB::queryFirstRow('SELECT * FROM upm_global_config');
@@ -356,46 +324,6 @@
       }
 
     }
-    public static function setServerConfig($server_id, $name, $hostname, $user_distribution,$ssh_private_key, $ssh_port, $ssh_username, &$serverinfo) {
-        if( $ssh_port == "" )
-        $ssh_port = 0;
-
-        try {
-        DB::update("upm_server", array(
-            'name' => $name,
-            'hostname' => $hostname,
-            'user_distribution' => $user_distribution,
-            'ssh_private_key' => $ssh_private_key,
-            'ssh_port' => $ssh_port,
-            'ssh_username' => $ssh_username), "server_id=%d", $server_id);
-        UPM::getServerInfo($server_id, $serverinfo);
-        return true;
-        } catch(MeekroDBException $e) {
-        error_log( "DB error " . $e->getMessage() );
-        error_log( $e->getQuery() );
-        return false;
-        }
-    }
-    public static function setFolderConfig($folder_id, $name, $icon,
-        $ssh_private_key, $ssh_port, $ssh_username) {
-
-        if( $ssh_port == "" )
-        $ssh_port = 0;
-
-        try {
-        DB::update("upm_folder", array(
-            'name' => $name,
-            'icon' => $icon,
-            'ssh_private_key' => $ssh_private_key,
-            'ssh_port' => $ssh_port,
-            'ssh_username' => $ssh_username), "folder_id=%d", $folder_id);
-        return true;
-        } catch(MeekroDBException $e) {
-        error_log( "DB error " . $e->getMessage() );
-        error_log( $e->getQuery() );
-        return false;
-        }
-    }
     private static function serverDetectDistribution($server_id, &$distri, &$distri_version, &$error) {
         if( !UPM::serverRunCommand($server_id, $_SESSION['default_distribution_command'], $command_ret, $error) ) {
           return false;
@@ -419,16 +347,6 @@
             error_log( "DB error " . $e->getMessage() );
             error_log( $e->getQuery() );
             return false;
-        }
-    }
-    public static function getGlobalConfig(&$config) {
-        try {
-          $config = DB::queryFirstRow('SELECT * FROM upm_global_config');
-          return true;
-        } catch(MeekroDBException $e) {
-          error_log( "DB error " . $e->getMessage() );
-          error_log( $e->getQuery() );
-          return false;
         }
     }
   }
