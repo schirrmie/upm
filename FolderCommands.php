@@ -22,7 +22,6 @@
 
   class FolderCommands {
 
-    private static $ssh;
     public static function init() {
         $config = include('config.php');
         DB::$user = $config['database']['user'];
