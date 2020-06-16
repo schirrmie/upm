@@ -1,8 +1,10 @@
 <?php
   header('Content-Type: application/json');
 
-  require_once 'upm.php';
-
+  require_once 'ConfigCommands.php';
+  require_once 'FolderCommands.php';
+  require_once 'UpdateCommands.php';
+  require_once 'ServerCommands.php';
   if( !isset( $_POST["fct_name"] ) ) {
     echo json_encode( array('success' => false, 'error' => "no fct_name set") );
     return false;
@@ -17,20 +19,20 @@
   
   switch( $fct_name ) {
     case "get_folders":
-      if( UPM::getFolders($folders) )
+      if( FolderCommands::getFolders($folders) )
         echo json_encode( array('success' => true, 'folders' => $folders) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "get_servers":
-      if( UPM::getServers($servers) )
+      if( ServerCommands::getServers($servers) )
         echo json_encode( array('success' => true, 'servers' => $servers) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "add_server":
       $server = $fct_data["server"];
-      if( UPM::addServer($server, $server) >= 0 )
+      if( ServerCommands::addServer($server, $server) >= 0 )
  			  echo json_encode( array('success' => true) );
       else
         echo json_encode( array('success' => false, 'message' => "Error while adding host: ") );
@@ -38,7 +40,7 @@
 		case "mass_import":
       $import_data = $fct_data["import_data"];
       
-      if( UPM::massImport($import_data) )
+      if( FolderCommands::massImport($import_data) )
         echo json_encode( array('success' => true, 'message' => "Finished mass import") );
       else
         echo json_encode( array('success' => false, 'message' => "Error while Importing: ") );
@@ -46,7 +48,7 @@
     case "add_folder":
       $folder = $fct_data["folder"];
       
-			if(	UPM::addFolder($folder) > 0 ) {
+			if(	FolderCommands::addFolder($folder) > 0 ) {
 				echo json_encode( array('success' => true) );
 			} else {
 				echo json_encode( array('success' => false, 'message' => "Can't open database!") );
@@ -55,7 +57,7 @@
     case "delete_server":
       $server_id = $fct_data["server_id"];
 
-      if( UPM::deleteServer( $server_id ) )
+      if( ServerCommands::deleteServer( $server_id ) )
         echo json_encode( array('success' => true, 'message' => "Successfully delete host")  );
       else
         echo json_encode( array('success' => false, 'message' => "Error while deleting host") );
@@ -64,7 +66,7 @@
       $server_id = $fct_data["server_id"];
       $folder_id = $fct_data["folder_id"];
 
-      if( UPM::moveServer($server_id, $folder_id) ) {
+      if( ServerCommands::moveServer($server_id, $folder_id) ) {
         echo json_encode( array('success' => true, 'message' => "Successfully moved host")  );
       } else {
         echo json_encode( array('success' => false, 'message' => "Error while moving host") );
@@ -72,7 +74,7 @@
       break;
     case "delete_folder":
       $folder_id = $fct_data["folder_id"];
-      if( UPM::deleteFolder( $folder_id ) )
+      if( FolderCommands::deleteFolder( $folder_id ) )
         echo json_encode( array('success' => true, 'message' => "Successfully deleted folder.")  );
       else
         echo json_encode( array('success' => false, 'message' => "error while deleting folder!") );
@@ -81,7 +83,7 @@
       $folder_id = $fct_data["folder_id"];
       $parent_id = $fct_data["parent_id"];
 
-      if( UPM::moveFolder($folder_id, $parent_id) )
+      if( FolderCommands::moveFolder($folder_id, $parent_id) )
         echo json_encode( array('success' => true, 'message' => "Successfully moved folder")  );
       else
         echo json_encode( array('success' => false, 'message' => "Error while moving folder: ") );
@@ -90,7 +92,7 @@
       $server_id = $fct_data["server_id"];
       //$initial_run = $fct_data["initial_run"];
       //$update_root_folder = $fct_data["update_root_folder"];
-      if( UPM::getServerInfo($server_id, $server) )
+      if( ServerCommands::getServerInfo($server_id, $server) )
         echo json_encode( array('success' => true, "server_id" => $server_id, 'server' => $server) );
       else
         echo json_encode( array('success' => false, "server_id" => $server_id));
@@ -98,7 +100,7 @@
     case "get_folder_info":
       $folder_id = $fct_data["folder_id"];
 
-      if( UPM::getFolderInfo($folder_id, $folder) )
+      if( FolderCommands::getFolderInfo($folder_id, $folder) )
         echo json_encode( array('success' => true, "folder_id" => $folder_id, 'folder' => $folder) );
       else
         echo json_encode( array('success' => false, "folder_id" => $folder_id) );
@@ -112,7 +114,7 @@
       $ssh_username = $fct_data["ssh_username"];
       $user_distribution = $fct_data["user_distribution"];
 
-      if( UPM::setServerConfig($server_id, $name, $hostname, $user_distribution,
+      if( ConfigCommands::setServerConfig($server_id, $name, $hostname, $user_distribution,
         $ssh_private_key, $ssh_port, $ssh_username, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server, 'message' => 'Successfully updated host config'));
       else
@@ -127,7 +129,7 @@
       $ssh_port = $fct_data["ssh_port"];
       $ssh_username = $fct_data["ssh_username"];
 
-      if( UPM::setFolderConfig($folder_id, $name, $icon,
+      if( ConfigCommands::setFolderConfig($folder_id, $name, $icon,
         $ssh_private_key, $ssh_port, $ssh_username) )
         echo json_encode( array('success' => true, 'folder_id' => $folder_id, 'message' => 'Successfully updated folder config'));
       else
@@ -135,7 +137,7 @@
       break;
       //ToDo
     case "get_global_config":
-      if( UPM::getGlobalConfig( $config ) )
+      if( ConfigCommands::getGlobalConfig( $config ) )
         echo json_encode( array('success' => true, 'config' => $config) );
       else
         echo json_encode( array('success' => false, 'message' => "Can't get global config") );
@@ -143,33 +145,33 @@
     case "get_distribution_config_1":
       $config_id = $fct_data["config_id"];
 
-      if( UPM::getDistributionConfig($config_id, $config) )
+      if( ConfigCommands::getDistributionConfig($config_id, $config) )
         echo json_encode( array('success' => true, 'config' => $config) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "get_distribution_config":
-      if( UPM::getDistributionOverview($configs) )
+      if( ConfigCommands::getDistributionOverview($configs) )
         echo json_encode( array('success' => true, 'config' => $configs) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "get_eol_config":
-      if( UPM::getEolOverview($configs) )
+      if( ConfigCommands::getEolOverview($configs) )
         echo json_encode( array('success' => true, 'config' => $configs) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "get_eol_config_1":
       $eol_id = $fct_data["eol_id"];
-      if( UPM::getEolConfig($eol_id, $config) )
+      if( ConfigCommands::getEolConfig($eol_id, $config) )
         echo json_encode( array('success' => true, 'config' => $config) );
       else
         echo json_encode( array('success' => false) );
       break;
     case "server_get_update_output":
       $server_update_output_id = $fct_data["server_update_output_id"];
-      if( UPM::getServerUpdateOutput($server_update_output_id, $server_id, $output) )
+      if( UpdateCommands::getServerUpdateOutput($server_update_output_id, $server_id, $output) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'output' => $output) );
       else
         echo json_encode( array('success' => false) );
@@ -179,7 +181,7 @@
       $package = $fct_data['pack'];
       $comment = $fct_data['comment'];
 
-      if( UPM::addImportantUpdate($server_id, $package, $comment, $server) )
+      if( UpdateCommands::addImportantUpdate($server_id, $package, $comment, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server ) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id ) );
@@ -190,7 +192,7 @@
       $package = $fct_data['pack'];
       $comment = $fct_data['comment'];
 
-      if( UPM::updateImportantUpdate($server_id, $iu_id, $package, $comment, $server) )
+      if( UpdateCommands::updateImportantUpdate($server_id, $iu_id, $package, $comment, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server ) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id ) );
@@ -199,7 +201,7 @@
       $iu_id = $fct_data['iu_id'];
       $server_id = $fct_data['server_id'];
 
-      if( UPM::deleteImportantUpdate($server_id, $iu_id, $server) )
+      if( UpdateCommands::deleteImportantUpdate($server_id, $iu_id, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server ) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id ) );
@@ -208,7 +210,7 @@
       $distri_name = $fct_data["distri_name"];
       $eol = $fct_data["eol"];
 
-      if( UPM::addEolConfig($distri_name, $eol) )
+      if( ConfigCommands::addEolConfig($distri_name, $eol) )
         echo json_encode( array('success' => true, 'message' => "Successfully added eol config") );
       else
         echo json_encode( array('success' => false, 'message' => "Error while adding eol config") );
@@ -218,7 +220,7 @@
       $distri_name = $fct_data["distri_name"];
       $eol = $fct_data["eol"];
 
-      if( UPM::updateEolConfig($eol_id, $distri_name, $eol) )
+      if( ConfigCommands::updateEolConfig($eol_id, $distri_name, $eol) )
         echo json_encode( array('success' => true, 'message' => "Successfully updated eol config") );
       else
         echo json_encode( array('success' => false, 'message' => "Error while updating eol config") );
@@ -226,7 +228,7 @@
     case "delete_eol_config":
       $eol_id = $fct_data["eol_id"];
 
-      if( UPM::deleteEolConfig($eol_id) )
+      if( ConfigCommands::deleteEolConfig($eol_id) )
         echo json_encode( array('success' => true, 'message' => "Successfully deleted eol config") );
       else
         echo json_encode( array('success' => false, 'message' => "Error while deleting eol config") );
@@ -246,7 +248,7 @@
       $shedule_reboot_get = $fct_data["shedule_reboot_get"];
       $shedule_reboot_del = $fct_data["shedule_reboot_del"];
 
-      if( UPM::addDistributionConfig($config_name, $distri_name, $distri_version,
+      if( ConfigCommands::addDistributionConfig($config_name, $distri_name, $distri_version,
         $uptime, $restart, $update_list, $package_info, $package_changelog,
         $system_update, $package_update, $shedule_reboot_add, $shedule_reboot_get, $shedule_reboot_del) )
         echo json_encode( array('success' => true, 'message' => "Successfully added distribution config") );
@@ -269,7 +271,7 @@
       $shedule_reboot_get = $fct_data["shedule_reboot_get"];
       $shedule_reboot_del = $fct_data["shedule_reboot_del"];
 
-      if( UPM::updateDistributionConfig($config_id, $config_name, $distri_name, $distri_version,
+      if( ConfigCommands::updateDistributionConfig($config_id, $config_name, $distri_name, $distri_version,
         $uptime, $restart, $update_list, $package_info, $package_changelog,
         $system_update, $package_update, $shedule_reboot_add, $shedule_reboot_get, $shedule_reboot_del) )
         echo json_encode( array('success' => true, 'message' => "Successfully updated distribution config") );
@@ -279,7 +281,7 @@
     case "delete_distribution_config":
       $config_id = $fct_data["config_id"];
 
-      if( UPM::deleteDistributionConfig($config_id) )
+      if( ConfigCommands::deleteDistributionConfig($config_id) )
         echo json_encode( array('success' => true, 'message' => "Successfully deleted distribution config") );
       else
         echo json_encode( array('success' => false, 'message' => "Error while deleting distribution config") );
@@ -291,7 +293,7 @@
       $default_distribution_command = $fct_data["default_distribution_command"];
       $default_distribution_version_command = $fct_data["default_distribution_version_command"];
 
-      if( UPM::updateGlobalConfig($default_ssh_private_key, 
+      if( ConfigCommands::updateGlobalConfig($default_ssh_private_key, 
         $default_ssh_port, $default_ssh_username, $default_distribution_command, $default_distribution_version_command) )
         echo json_encode( array('success' => true, 'message' => 'Successfully updated global config'));
       else
@@ -301,7 +303,7 @@
     case "inventory_server_from_list":
       $server_id = $fct_data["server_id"];
 
-      if( UPM::inventoryServer($server_id, $server, $error) )
+      if( ServerCommands::inventoryServer($server_id, $server, $error) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server));
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id, 'message' => $error) );
@@ -309,7 +311,7 @@
     case "get_package_changelog":
       $update_id = $fct_data["update_id"];
 
-      if( UPM::getPackageChangelog($update_id, $changelog) )
+      if( UpdateCommands::getPackageChangelog($update_id, $changelog) )
         echo json_encode( array('success' => true, 'changelog' => $changelog) );
       else
         echo json_encode( array('success' => false, 'message' => "Can't get package changelog"));
@@ -317,7 +319,7 @@
     case "get_package_info":
       $update_id = $fct_data["update_id"];
       
-      if( UPM::getPackageInfo($update_id, $info) )
+      if( UpdateCommands::getPackageInfo($update_id, $info) )
         echo json_encode( array('success' => true, 'info' => $info) );
       else
         echo json_encode( array('success' => false, 'message' => "Can't get package info"));
@@ -325,7 +327,7 @@
     case "update_package":
       $update_id = $fct_data["update_id"];
       $server_id = $fct_data["server_id"];
-      if( UPM::updatePackage($update_id, $output, $server) )
+      if( UpdateCommands::updatePackage($update_id, $output, $server) )
         echo json_encode( array('success' => true, 'server_output' => $output, 'server_id' => $server_id, 'server' => $server) );
       else
         echo json_encode( array('success' => false, 'message' => "Error updating package"));
@@ -334,7 +336,7 @@
     case "update_server_from_list":
       $server_id = $fct_data['server_id'];
 
-      if( UPM::updateServer($server_id, $output, $server) )
+      if( UpdateCommands::updateServer($server_id, $output, $server) )
         echo json_encode( array('success' => true, 'server_output' => $output, 'server_id' => $server_id, 'server' => $server) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id, 'message' => "Error while update host") );
@@ -344,7 +346,7 @@
       $server_id = $fct_data['server_id'];
       $timestamp = $fct_data['timestamp'];
 
-      if( UPM::addSheduleReboot($server_id, $timestamp, $sheduled_restart, $server) )
+      if( ServerCommands::addSheduleReboot($server_id, $timestamp, $sheduled_restart, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'reboot' => $sheduled_restart, 'server' => $server) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id, 'message' => "Error while set shedule reboot") );
@@ -353,7 +355,7 @@
     case "shedule_reboot_del_list":
       $server_id = $fct_data['server_id'];
 
-      if( UPM::delSheduleReboot($server_id, $server) )
+      if( ServerCommands::delSheduleReboot($server_id, $server) )
         echo json_encode( array('success' => true, 'server_id' => $server_id, 'server' => $server) );
       else
         echo json_encode( array('success' => false, 'server_id' => $server_id, 'message' => "Error while delete shedule reboot") );
