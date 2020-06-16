@@ -16,6 +16,7 @@
   require_once 'phpseclib/Crypt/Twofish.php';
   require_once 'phpseclib/Crypt/RSA.php';
   require_once 'meekrodb.2.3.class.php';
+  require_once 'CommandNames.php';
   require_once 'FolderCommands.php';
   require_once 'ServerCommands.php';
   require_once 'ConfigCommands.php';
