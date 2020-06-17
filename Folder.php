@@ -1,26 +1,10 @@
 <?php
 
-  require_once 'phpseclib/Net/SSH2.php';
-  require_once 'phpseclib/File/ANSI.php';
-  require_once 'phpseclib/Math/BigInteger.php';
-  require_once 'phpseclib/Crypt/Base.php';
-  require_once 'phpseclib/Crypt/Rijndael.php';
-  require_once 'phpseclib/Crypt/AES.php';
-  require_once 'phpseclib/Crypt/Blowfish.php';
-  require_once 'phpseclib/Crypt/DES.php';
-  require_once 'phpseclib/Crypt/Hash.php';
-  require_once 'phpseclib/Crypt/Random.php';
-  require_once 'phpseclib/Crypt/RC2.php';
-  require_once 'phpseclib/Crypt/RC4.php';
-  require_once 'phpseclib/Crypt/TripleDES.php';
-  require_once 'phpseclib/Crypt/Twofish.php';
-  require_once 'phpseclib/Crypt/RSA.php';
-  require_once 'meekrodb.2.3.class.php';
-  require_once 'ServerCommands.php';
-  require_once 'UpdateCommands.php';
-  require_once 'ConfigCommands.php';
 
-  class FolderCommands {
+  require_once 'ServerCommands.php';
+  require_once 'Config.php';
+
+  class Folder {
 
     public static function init() {
         $config = include('config.php');
@@ -33,22 +17,22 @@
         DB::$throw_exception_on_error = true;
         DB::$throw_exception_on_nonsql_error = true;
 
-        FolderCommands::$ssh = null;
+        Folder::$ssh = null;
         
         // session for saving config between ajax calls
         session_start();
         session_write_close();
         if( !isset($_SESSION['default_ssh_private_key']) ) {
-            ConfigCommands::loadGlobalConfig();
+            Configuration::loadGlobalConfig();
         }
         if( !isset($_SESSION['distribution_config']) ) {
-          ConfigCommands::loadDistributionConfig();
+          Configuration::loadDistributionConfig();
         }
         if( !isset($_SESSION['eol_config']) ) {
-          ConfigCommands::loadEolConfig();
+          Configuration::loadEolConfig();
         }
     }
-    public static function getFolders(&$folders) {
+    public static function get(&$folders) {
 			try {
 				$results = DB::query("
 				SELECT folder_parent_id, F.name AS parent, folder_child_id, F2.name AS child,
@@ -71,12 +55,12 @@
 				return false;
 			}
 		}
-		public static function addFolder($foldername, $parent_id = null) {
+		public static function add($foldername, $parent_id = null) {
       try {
         DB::insert('upm_folder', array( 'name' => $foldername) );
         $folder_id = DB::insertId();
         if ( $parent_id != null) {
-          FolderCommands::moveFolder($folder_id, $parent_id);
+          Folder::move($folder_id, $parent_id);
         }
         return $folder_id;
       } catch(MeekroDBException $e) {
@@ -85,7 +69,7 @@
         return -1;
       }
     }
-    public static function moveFolder($folder_id, $parent_id){
+    public static function move($folder_id, $parent_id){
       if( $folder_id == 0 ) {
         return false;
       }
@@ -132,14 +116,14 @@
         return false;
       }
     }
-    public static function deleteFolder($folder_id) {
+    public static function delete($folder_id) {
       if( $folder_id == 0 ) {
         error_log("Can't delete Root folder!");
         return false;
       }
-      if( !FolderCommands::deleteFolderFromFolderServer( $folder_id) )
+      if( !Folder::deleteFolderFromFolderServer( $folder_id) )
         return false;
-      if( !FolderCommands::deleteFolderFromFolderFolder( $folder_id) )
+      if( !Folder::deleteFolderFromFolderFolder( $folder_id) )
         return false;
 
       try {
@@ -151,7 +135,7 @@
         return false;
       }
 		}
-		public static function getFolderInfo($folder_id, &$folderinfo) {
+		public static function getInfo($folder_id, &$folderinfo) {
       try {
         $folderinfo = DB::queryFirstRow("SELECT * FROM upm_folder WHERE folder_id=%d", $folder_id);
         return true;
@@ -161,7 +145,6 @@
         return false;
       }
     }
-
     public static function massImport( $importdata ) {
       $j = 0;
       foreach(preg_split("/((\r?\n)|(\r\n?))/", $importdata) as $string) {
@@ -170,7 +153,7 @@
       }
 
       $dataindex = 0;
-      if( !FolderCommands::recursiveImport(0, $data, $dataindex, 0) )
+      if( !Folder::recursiveImport(0, $data, $dataindex, 0) )
         return false;
       return true;
     }
@@ -190,7 +173,7 @@
         $WhiteSpaceCount = $len - $len2;
       
         if( $WhiteSpaceCount > $OldWhiteSpaceCount ) {
-          if( !FolderCommands::recursiveImport($NewParentID, $data, $dataindex, $WhiteSpaceCount) ) {
+          if( !Folder::recursiveImport($NewParentID, $data, $dataindex, $WhiteSpaceCount) ) {
             return false;
           }
           $dataindex--;
@@ -209,10 +192,10 @@
             }
             break;
           case '#':
-            $NewParentID = FolderCommands::getFirstFolderByName( $name );
+            $NewParentID = Folder::getFirstFolderByName( $name );
             if( $NewParentID > 0 )
               break;
-            $NewParentID = FolderCommands::addFolder($name, $ParentID);
+            $NewParentID = Folder::add($name, $ParentID);
             if( $NewParentID == -1 ) {
               return false;
             }
@@ -226,4 +209,4 @@
     }
 
   }
-  FolderCommands::init();
+  Folder::init();

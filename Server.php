@@ -2,8 +2,8 @@
 
 
   require_once 'meekrodb.2.3.class.php';
-  require_once 'Folder.php';
-  require_once 'Update.php';
+  require_once 'FolderCommands.php';
+  require_once 'UpdateCommands.php';
   require_once 'Config.php';
   require_once 'SSH.php';
 
@@ -139,19 +139,19 @@
       }
 
       if( $update_list_str == "" ) {
-        if( !Update::serverClearUpdates($server_id) ) {
+        if( !UpdateCommands::serverClearUpdates($server_id) ) {
           $error = "Error while clearing server updates";
           return false;
         }
       } else {
         $update_list = array_map('trim', explode("\n", $update_list_str));
         foreach( $update_list as &$value) {
-          if( ! Update::addServerUpdate($server_id, $value) ) {
+          if( ! UpdateCommands::addServerUpdate($server_id, $value) ) {
             $error = "Error while adding server update to table!";
             return false;
           }
         }
-        if( !Update::serverDeleteOldUpdates($server_id, $update_list) ) {
+        if( !UpdateCommands::serverDeleteOldUpdates($server_id, $update_list) ) {
           $error = "Error while deleting old server updates in table!";
           return false;
         }
@@ -171,7 +171,7 @@
         $error = "Error while updating host info in table";
         return false;
       }
-      if( !Server::getInfo($server_id, $serverinfo)) {
+      if( !Server::getServerInfo($server_id, $serverinfo)) {
         $error = "Error while getting host info from table!";
         return false;
       }
@@ -189,9 +189,9 @@
     }
     // ToDo delete server output and more?
     public static function deleteServer($server_id) {
-      if( !Update::deleteAllImportantUpdates($server_id) )
+      if( !UpdateCommands::deleteAllImportantUpdates($server_id) )
         return false;
-      if( !Update::deleteAllUpdates($server_id) )
+      if( !UpdateCommands::deleteAllUpdates($server_id) )
         return false;
       if( !Server::deleteServerFromAnyFolder( $server_id) )
         return false;
@@ -231,14 +231,14 @@
       }
   }
     public static function serverRunCommand($server_id, $command, &$command_ret, &$error) {
-      if( !Server::getInfo($server_id, $server) ) {
+      if( !Server::getServerInfo($server_id, $server) ) {
         $error = "Can't receive server!";
         return false;
       }
       $folder_id = Server::getFolderIdFromServer( $server_id );
       $folder = null;
       if( $folder_id >= 0 ) {
-        if( !Folder::getInfo($folder_id, $folder) ) {
+        if( !FolderCommands::getFolderInfo($folder_id, $folder) ) {
           $error = "Can't receive folder!";
           return false;
         }
@@ -276,7 +276,7 @@
       return $ret;
     }
     public static function getServerDistribution($server_id, &$distri, &$distri_version) {
-      if( !Server::getInfo($server_id, $server) )
+      if( !Server::getServerInfo($server_id, $server) )
         return false;
 
       $distribution_config = array();
@@ -359,7 +359,7 @@
           $sheduled_restart = null;
 
         DB::update("upm_server", array('sheduled_restart' => $sheduled_restart), "server_id=%d", $server_id);
-        Server::getInfo($server_id, $serverinfo);
+        Server::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -384,7 +384,7 @@
         }
 
         DB::update("upm_server", array('sheduled_restart' => null), "server_id=%d", $server_id);
-        Server::getInfo($server_id, $serverinfo);
+        Server::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );

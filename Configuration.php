@@ -1,27 +1,10 @@
 <?php
 
-  require_once 'phpseclib/Net/SSH2.php';
-  require_once 'phpseclib/File/ANSI.php';
-  require_once 'phpseclib/Math/BigInteger.php';
-  require_once 'phpseclib/Crypt/Base.php';
-  require_once 'phpseclib/Crypt/Rijndael.php';
-  require_once 'phpseclib/Crypt/AES.php';
-  require_once 'phpseclib/Crypt/Blowfish.php';
-  require_once 'phpseclib/Crypt/DES.php';
-  require_once 'phpseclib/Crypt/Hash.php';
-  require_once 'phpseclib/Crypt/Random.php';
-  require_once 'phpseclib/Crypt/RC2.php';
-  require_once 'phpseclib/Crypt/RC4.php';
-  require_once 'phpseclib/Crypt/TripleDES.php';
-  require_once 'phpseclib/Crypt/Twofish.php';
-  require_once 'phpseclib/Crypt/RSA.php';
   require_once 'meekrodb.2.3.class.php';
-  require_once 'CommandNames.php';
-  require_once 'FolderCommands.php';
-  require_once 'ServerCommands.php';
-  require_once 'UpdateCommands.php';
+  require_once 'SSH.php';
+  require_once 'Server.php';
 
-  class ConfigCommands {
+  class Configuration {
     private static $ssh;
     public static function init() {
         $config = include('config.php');
@@ -34,19 +17,19 @@
         DB::$throw_exception_on_error = true;
         DB::$throw_exception_on_nonsql_error = true;
 
-        ConfigCommands::$ssh = null;
+        Configuration::$ssh = null;
         
         // session for saving config between ajax calls
         session_start();
         session_write_close();
         if( !isset($_SESSION['default_ssh_private_key']) ) {
-            ConfigCommands::loadGlobalConfig();
+            Configuration::loadGlobalConfig();
         }
         if( !isset($_SESSION['distribution_config']) ) {
-            ConfigCommands::loadDistributionConfig();
+            Configuration::loadDistributionConfig();
         }
         if( !isset($_SESSION['eol_config']) ) {
-            ConfigCommands::loadEolConfig();
+            Configuration::loadEolConfig();
         }
     }
     public static function updateServerInfo($server_id, $uptime, $restart_required, $distribution, $distribution_version, $EOL, $sheduled_restart, $inventory_time) {
@@ -80,7 +63,7 @@
           'ssh_private_key' => $ssh_private_key,
           'ssh_port' => $ssh_port,
           'ssh_username' => $ssh_username), "server_id=%d", $server_id);
-        ServerCommands::getServerInfo($server_id, $serverinfo);
+        Server::getServerInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -144,7 +127,7 @@
           'update_changelog_command' => $package_changelog, 'update_system_command' => $system_update,
           'update_package_command' => $package_update, 'reboot_set_command' => $shedule_reboot_add,
           'reboot_get_command' => $shedule_reboot_get, 'reboot_del_command' => $shedule_reboot_del) );
-        ConfigCommands::loadDistributionConfig();
+        Configuration::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -164,7 +147,7 @@
           'update_changelog_command' => $package_changelog, 'update_system_command' => $system_update,
           'update_package_command' => $package_update, 'reboot_set_command' => $shedule_reboot_add,
           'reboot_get_command' => $shedule_reboot_get, 'reboot_del_command' => $shedule_reboot_del), "config_id=%d", $config_id);
-        ConfigCommands::loadDistributionConfig();
+        Configuration::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -175,7 +158,7 @@
     public static function deleteDistributionConfig($config_id) {
       try {
         DB::delete('upm_distri_config', "config_id=%d", $config_id);
-        ConfigCommands::loadDistributionConfig();
+        Configuration::loadDistributionConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -228,7 +211,7 @@
       try {
         DB::insert('upm_eol_config',
           array( 'distribution_match' => $distri_name, 'EOL' => $eol) );
-        ConfigCommands::loadEolConfig();
+        Configuration::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -241,7 +224,7 @@
         DB::update("upm_eol_config", array(
           'distribution_match' => $distri_name,
           'EOL' => $eol), "eol_id=%d", $eol_id);
-        ConfigCommands::loadEolConfig();
+        Configuration::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -252,7 +235,7 @@
     public static function deleteEolConfig($eol_id) {
       try {
         DB::delete('upm_eol_config', "eol_id=%d", $eol_id);
-        ConfigCommands::loadEolConfig();
+        Configuration::loadEolConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -304,7 +287,7 @@
             'default_ssh_port' => $default_ssh_port, 'default_ssh_username' => $default_ssh_username,
             'default_ssh_private_key' => $default_ssh_private_key), '1=1' );
         }
-        ConfigCommands::loadGlobalConfig();
+        Configuration::loadGlobalConfig();
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -314,14 +297,14 @@
 
     }
     public static function serverDetectDistribution($server_id, &$distri, &$distri_version, &$error) {
-        if( !ServerCommands::serverRunCommand($server_id, $_SESSION['default_distribution_command'], $command_ret, $error) ) {
+        if( !Server::serverRunCommand($server_id, $_SESSION['default_distribution_command'], $command_ret, $error) ) {
           return false;
         }
         $distri = $command_ret;
-        if( !ServerCommands::serverRunCommand($server_id, $_SESSION['default_distribution_version_command'], $command_ret, $error) )
+        if( !Server::serverRunCommand($server_id, $_SESSION['default_distribution_version_command'], $command_ret, $error) )
           return false;
         $distri_version = $command_ret;
-        if( !ConfigCommands::serverInsertDistribution($server_id, $distri, $distri_version) ) {
+        if( !Configuration::serverInsertDistribution($server_id, $distri, $distri_version) ) {
           $error = "Can't update server info with distribution + version!";
           return false;
         }
@@ -392,4 +375,4 @@
       return false;
     }
   }
-  ConfigCommands::init();
+  Configuration::init();
