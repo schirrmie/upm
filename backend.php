@@ -32,7 +32,7 @@
       break;
     case "add_server":
       $server = $fct_data["server"];
-      if( ServerCommands::addServer($server, $server) >= 0 )
+      if( ServerCommands::add($server, $server) >= 0 )
  			  echo json_encode( array('success' => true) );
       else
         echo json_encode( array('success' => false, 'message' => "Error while adding host: ") );
@@ -48,7 +48,7 @@
     case "add_folder":
       $folder = $fct_data["folder"];
       
-			if(	FolderCommands::addFolder($folder) > 0 ) {
+			if(	FolderCommands::add($folder) > 0 ) {
 				echo json_encode( array('success' => true) );
 			} else {
 				echo json_encode( array('success' => false, 'message' => "Can't open database!") );
@@ -57,7 +57,7 @@
     case "delete_server":
       $server_id = $fct_data["server_id"];
 
-      if( ServerCommands::deleteServer( $server_id ) )
+      if( ServerCommands::delete( $server_id ) )
         echo json_encode( array('success' => true, 'message' => "Successfully delete host")  );
       else
         echo json_encode( array('success' => false, 'message' => "Error while deleting host") );
@@ -66,7 +66,7 @@
       $server_id = $fct_data["server_id"];
       $folder_id = $fct_data["folder_id"];
 
-      if( ServerCommands::moveServer($server_id, $folder_id) ) {
+      if( ServerCommands::move($server_id, $folder_id) ) {
         echo json_encode( array('success' => true, 'message' => "Successfully moved host")  );
       } else {
         echo json_encode( array('success' => false, 'message' => "Error while moving host") );
@@ -74,7 +74,7 @@
       break;
     case "delete_folder":
       $folder_id = $fct_data["folder_id"];
-      if( FolderCommands::deleteFolder( $folder_id ) )
+      if( FolderCommands::delete( $folder_id ) )
         echo json_encode( array('success' => true, 'message' => "Successfully deleted folder.")  );
       else
         echo json_encode( array('success' => false, 'message' => "error while deleting folder!") );
@@ -83,7 +83,7 @@
       $folder_id = $fct_data["folder_id"];
       $parent_id = $fct_data["parent_id"];
 
-      if( FolderCommands::moveFolder($folder_id, $parent_id) )
+      if( FolderCommands::move($folder_id, $parent_id) )
         echo json_encode( array('success' => true, 'message' => "Successfully moved folder")  );
       else
         echo json_encode( array('success' => false, 'message' => "Error while moving folder: ") );
@@ -92,7 +92,7 @@
       $server_id = $fct_data["server_id"];
       //$initial_run = $fct_data["initial_run"];
       //$update_root_folder = $fct_data["update_root_folder"];
-      if( ServerCommands::getServerInfo($server_id, $server) )
+      if( ServerCommands::getInfo($server_id, $server) )
         echo json_encode( array('success' => true, "server_id" => $server_id, 'server' => $server) );
       else
         echo json_encode( array('success' => false, "server_id" => $server_id));
@@ -100,7 +100,7 @@
     case "get_folder_info":
       $folder_id = $fct_data["folder_id"];
 
-      if( FolderCommands::getFolderInfo($folder_id, $folder) )
+      if( FolderCommands::getInfo($folder_id, $folder) )
         echo json_encode( array('success' => true, "folder_id" => $folder_id, 'folder' => $folder) );
       else
         echo json_encode( array('success' => false, "folder_id" => $folder_id) );
