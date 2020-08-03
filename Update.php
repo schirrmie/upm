@@ -1,9 +1,9 @@
 <?php
 
   require_once 'meekrodb.2.3.class.php';
-  require_once 'CommandNames.php';
-  require_once 'Server.php';
-  require_once 'Config.php';
+  require_once 'SSH.php';
+  require_once 'server.php';
+  require_once 'configuration.php';
   
   class Update {
 

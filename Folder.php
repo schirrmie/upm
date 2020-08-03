@@ -1,11 +1,11 @@
 <?php
 
 
-  require_once 'ServerCommands.php';
-  require_once 'Config.php';
+  require_once 'server.php';
+  require_once 'configuration.php';
 
   class Folder {
-
+    private static $ssh;
     public static function init() {
         $config = include('config.php');
         DB::$user = $config['database']['user'];

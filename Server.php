@@ -2,9 +2,9 @@
 
 
   require_once 'meekrodb.2.3.class.php';
-  require_once 'FolderCommands.php';
-  require_once 'UpdateCommands.php';
-  require_once 'Config.php';
+  require_once 'folder.php';
+  require_once 'update.php';
+  require_once 'configuration.php';
   require_once 'SSH.php';
 
   class Server {
@@ -36,7 +36,7 @@
         Config::loadEolConfig();
       }
     }
-    public static function getServers(&$servers) {
+    public static function get(&$servers) {
 			try {
 				$results = DB::query("SELECT S.server_id FROM upm_server AS S;");
 				$servers = array();
@@ -50,7 +50,7 @@
 				return false;
 			}
     }
-    public static function addServer($servername, $hostname, $folder_id = null) {
+    public static function add($servername, $hostname, $folder_id = null) {
 			try {
 					DB::insert('upm_server', array( 'name' => $servername, 'hostname' => $hostname) );
 
@@ -67,7 +67,7 @@
 					return -1;
 			}
     }
-    public static function moveServer($server_id, $folder_id) {
+    public static function move($server_id, $folder_id) {
 			try {
 				DB::delete('upm_folder_server', 'server_id=%d', $server_id);
 				if( $folder_id > 0 ) {
@@ -80,7 +80,7 @@
 				return false;
 			}
 		}
-		public static function getServerInfo($server_id, &$serverinfo) {
+		public static function getInfo($server_id, &$serverinfo) {
       try {
         $serverinfo = DB::queryFirstRow('SELECT S.*, FS.folder_id FROM upm_server AS S LEFT OUTER JOIN upm_folder_server AS FS ON FS.server_id = S.server_id WHERE S.server_id=%d', $server_id);
         $results = DB::query("SELECT U.update_id, U.server_id, U.package, IU.important_update_id, IU.comment 
@@ -117,7 +117,7 @@
         return false;
       }
     }
-		public static function inventoryServer($server_id, &$serverinfo, &$error) {
+		public static function inventory($server_id, &$serverinfo, &$error) {
       $inventory_time = date("Y-m-d H:i:s");
       if( !Server::serverRunCommandName($server_id, CommandNames::Uptime, $uptime, $error) ) {
         return false;
@@ -139,19 +139,19 @@
       }
 
       if( $update_list_str == "" ) {
-        if( !UpdateCommands::serverClearUpdates($server_id) ) {
+        if( !Update::serverClearUpdates($server_id) ) {
           $error = "Error while clearing server updates";
           return false;
         }
       } else {
         $update_list = array_map('trim', explode("\n", $update_list_str));
         foreach( $update_list as &$value) {
-          if( ! UpdateCommands::addServerUpdate($server_id, $value) ) {
+          if( ! Update::addServerUpdate($server_id, $value) ) {
             $error = "Error while adding server update to table!";
             return false;
           }
         }
-        if( !UpdateCommands::serverDeleteOldUpdates($server_id, $update_list) ) {
+        if( !Update::serverDeleteOldUpdates($server_id, $update_list) ) {
           $error = "Error while deleting old server updates in table!";
           return false;
         }
@@ -171,13 +171,13 @@
         $error = "Error while updating host info in table";
         return false;
       }
-      if( !Server::getServerInfo($server_id, $serverinfo)) {
+      if( !Server::getInfo($server_id, $serverinfo)) {
         $error = "Error while getting host info from table!";
         return false;
       }
       return true;
 		}
-		private static function deleteServerFromAnyFolder($server_id) {
+		private static function deleteFromAnyFolder($server_id) {
       try {
         DB::delete('upm_folder_server', "server_id=%d", $server_id);
         return true;
@@ -188,12 +188,12 @@
       }
     }
     // ToDo delete server output and more?
-    public static function deleteServer($server_id) {
-      if( !UpdateCommands::deleteAllImportantUpdates($server_id) )
+    public static function delete($server_id) {
+      if( !Update::deleteAllImportantUpdates($server_id) )
         return false;
-      if( !UpdateCommands::deleteAllUpdates($server_id) )
+      if( !Update::deleteAllUpdates($server_id) )
         return false;
-      if( !Server::deleteServerFromAnyFolder( $server_id) )
+      if( !Server::deleteFromAnyFolder( $server_id) )
         return false;
 
       try {
@@ -231,7 +231,7 @@
       }
   }
     public static function serverRunCommand($server_id, $command, &$command_ret, &$error) {
-      if( !Server::getServerInfo($server_id, $server) ) {
+      if( !Server::getInfo($server_id, $server) ) {
         $error = "Can't receive server!";
         return false;
       }
@@ -276,7 +276,7 @@
       return $ret;
     }
     public static function getServerDistribution($server_id, &$distri, &$distri_version) {
-      if( !Server::getServerInfo($server_id, $server) )
+      if( !Server::getInfo($server_id, $server) )
         return false;
 
       $distribution_config = array();
@@ -359,7 +359,7 @@
           $sheduled_restart = null;
 
         DB::update("upm_server", array('sheduled_restart' => $sheduled_restart), "server_id=%d", $server_id);
-        Server::getServerInfo($server_id, $serverinfo);
+        Server::getInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );
@@ -384,7 +384,7 @@
         }
 
         DB::update("upm_server", array('sheduled_restart' => null), "server_id=%d", $server_id);
-        Server::getServerInfo($server_id, $serverinfo);
+        Server::getInfo($server_id, $serverinfo);
         return true;
       } catch(MeekroDBException $e) {
         error_log( "DB error " . $e->getMessage() );

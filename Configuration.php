@@ -2,7 +2,7 @@
 
   require_once 'meekrodb.2.3.class.php';
   require_once 'SSH.php';
-  require_once 'Server.php';
+  require_once 'server.php';
 
   class Configuration {
     private static $ssh;

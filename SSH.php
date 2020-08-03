@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Server.php';
+require_once 'server.php';
 abstract class CommandNames {
   const Distribution = "distribution_command";
   const DistributionVersion = "distribution_version_command";
