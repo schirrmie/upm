@@ -20,6 +20,15 @@ In theory this should work. For example: you could change the command for the up
 #### Does UPM have a permissions system?
 Currently UPM has no permission implementation. This means anyone with access to the webserver has full rights. For now use Basic authentification / .htaccess to manage who can use the page.
 
+#### automatic apt update
+The default UPM distribution configuration for Debian and Ubuntu does not do an apt update before testing for new updates. Without doing an apt update UPM is faster to inventory a host.
+For automatic apt update use apt feature "periodic update package lists"
+For example:
+```
+echo 'APT::Periodic::Update-Package-Lists "1";' > /etc/apt/apt.conf.d/02periodic_update_package_lists
+```
+With this apt update is daily triggered via cron.
+
 #### How much ressources would a UPM Server requirere?
 UPM is extremly lightweight. As for Storage only a few Megabytes for UPM and MariaDB are needed. Currently I use a virutal machine with 4 cores and 2 GB of RAM. This is enough to manage a few hundred hosts. 
 
