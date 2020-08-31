@@ -14,11 +14,11 @@ Please also read the
 
 # Requirements
 For running UPM you need a webserver with php7.X and a MariaDB database.
-You also need the php library phpseclib (> 2.0) and mysql.
-You can start with 1 CPU and 1GB Ram to manage < 100 hosts. With 4 CPU and 2GB Ram you can manage up to 1000 hosts with good performance. Please see the FAQ for more informations about requirements and performance.
+you also need the php library phpseclib (> 2.0) and mysql.
+you can start with 1 CPU and 1GB Ram to manage < 100 hosts. With 4 CPU and 2GB Ram you can manage up to 1000 hosts with good performance. Please see the FAQ for more informations about requirements and performance.
 
 # Installation
-You need a working webserver with php7.X
+you need a working webserver with php7.X
 Install the php librarys phpseclib and mysql.
 
 Debian based systems
@@ -52,7 +52,7 @@ set database name, username and password what you created
 ### test accessing UPM in the browser
 Now you should be able to see the UPM site.
 On the top right side press the button "Global Settings". you should see existing distribution configs for Debian, Ubuntu, OracleServer, etc.
-You should also see default distritubion command and distribution version command.
+you should also see default distritubion command and distribution version command.
 If you see all this then you're ready to start otherwise look for any errors in your webserver error log.
 
 ### UPM host access setup

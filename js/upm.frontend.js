@@ -49,7 +49,6 @@ class UPMFrontend {
   loadData() {
     this.backend.loadData();
   }
-
   folderDataLoad() {
     this.folder_data_finished = true;
     if( this.folder_data_finished && this.server_data_finished ) {
@@ -587,8 +586,12 @@ class UPMFrontend {
 
 
   uptimeString( uptime ) {
+    var d = new Date();
+    var offset = d.getTimezoneOffset() * 60 * 1000;
+
     var now = Date.now();
-    var diff = now - uptime*1000;
+    now = now - offset;
+    var diff = now - uptime * 1000;
 
     var Years = Math.floor(diff/1000/60/60/24/365);
     diff -= Years*1000*60*60*24*365;
