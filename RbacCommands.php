@@ -1,6 +1,6 @@
 <?php
   require_once 'meekrodb.2.3.class.php';
-  require_once 'src/PhpRbac/Rbac.php';
+  require_once 'PhpRbac/Rbac.php';
 
   use PhpRbac\Rbac;
 
