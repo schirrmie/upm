@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>AD - universal patch manager</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/tablesort.css">
+    <link rel="stylesheet" href="css/toast.min.css">
+    <link rel="stylesheet" href="css/upm.css">
+    <link rel="stylesheet" href="css/fontawesome.css">
+    <link rel="stylesheet" href="css/font-logos.css">
+    <link rel="stylesheet" href="css/fontawesome-iconpicker.min.css">
+
+    <style>
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="page-header">
+        <h3><a href="./index.html" class="text-decoration-none text-reset"><i class="fas fa-cubes"></i> UPM </a><small>universal patch manager</small></h3>
+      </div>
+
+      <div class="container">
+        <h1 class="display-4">User / Role assignment</h1>
+        <div class="shadow-sm p-3 mb-5 bg-white rounded">
+          <table id="rbac-table" class="table table-hover">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+
+        <h1 class="display-4">Role description</h1>
+        <div id="rbac-descriptions" class="shadow-sm p-3 mb-5 bg-white rounded">
+        </div>
+      </div>
+    </div> <!-- container -->
+    <div class="page-footer container text-center">
+      <span class="font-weight-light text-monospace text-muted">UPM version 0.1.2</span>
+    </div>
+
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/toast.min.js"></script>
+    <script src='js/tablesort.min.js'></script>
+    <script src='js/tablesort.number.min.js'></script>
+    <script src='js/tablesort.date.min.js'></script>
+    <script src="js/fontawesome-all.js"></script>
+    <script src="js/fontawesome-iconpicker.min.js"></script>
+    <script src='js/cache.js'></script>
+    <script src='js/upm.folder.js'></script>
+    <script src='js/upm.server.js'></script>
+    <script src='js/upm.backend.js'></script>
+    <script src='js/upm.frontend.js'></script>
+
+    <script type="text/javascript">
+      var upm;
+
+      $( document ).ready(function() {
+        //new Tablesort(document.getElementById('folder-server-list'), {descending: true});
+
+        upm = new UPMFrontend(UPMInitFinishedCallback);
+        upm.loadRBAC();
+      });
+
+      var UPMInitFinishedCallback = function() {
+        $('[data-toggle="tooltip"]').tooltip();
+      }
+      $('#rbac-table').on("change", 'td > div > input', function( e ) {
+        var checked = $(this).prop('checked');
+        var username = $(this).attr('data-username');
+        var role = $(this).attr('data-role');
+        //Hier den user über RBAC der Role hinzufüge       
+        console.log("username: " + username + " role: " + role + " checked: " + checked );
+      });
+
+    </script>
+  </body>
+</html>
+
+<!--
+ vim: syntax=php filetype=php
+-->

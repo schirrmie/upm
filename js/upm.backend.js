@@ -16,12 +16,17 @@ class UPMBackend {
     this.updateServerListReturn = config.updateServerListReturn;
     this.rebootServerListReturn = config.rebootServerListReturn;
     this.rebootDelServerListReturn = config.rebootDelServerListReturn;
+    this.usersLoadReturn = config.usersLoadReturn;
+    this.rolesLoadReturn = config.rolesLoadReturn;
     
     this.cache = new Cache(-1, false, new Cache.LocalStorageCacheStorage());
     this.cacheTime = 180;
 
     this.folders = Array();
     this.servers = Array();
+
+    this.users;
+    this.roles;
   }
 
   loadData(refresh) {
@@ -444,6 +449,12 @@ class UPMBackend {
   rebootDelServerFromServerlist( server_id ) {
     return this.backendCall('shedule_reboot_del_list', {server_id: server_id} );
   }
+
+  RBACRequestData() {
+    this.backendCall('get_roles', null);
+    this.backendCall('get_users_with_roles', null);
+  }
+
   backendCall(fct_name, fct_data) {
     return $.ajax({url: "./backend.php",
       method: "POST",
@@ -582,6 +593,18 @@ class UPMBackend {
           case 'server_get_update_output':
             this.serverSetOutput(data.server_id, data.output);
             break;
+          case 'get_roles':
+            this.roles = data.roles;
+            this.rolesLoadReturn();
+            break;
+          case 'get_users_with_roles':
+            this.users = data.users;
+            this.usersLoadReturn();
+            break;
+          case 'add_user_to_role':
+            break;
+          case 'remove_user_from_role':
+
         }
 
         if( data.server_output !== undefined ) {
@@ -612,6 +635,7 @@ class UPMBackend {
           case 'shedule_reboot_del_list':
             this.rebootDelServerListReturn(data.server_id, false);
             break;
+
         }
 
       }

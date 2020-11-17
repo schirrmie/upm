@@ -15,6 +15,8 @@ class UPMFrontend {
     var _updateServerListReturn = this.updateServerListReturn.bind(this);
     var _rebootServerListReturn = this.rebootServerListReturn.bind(this);
     var _rebootDelServerListReturn = this.rebootDelServerListReturn.bind(this);
+    var _usersLoadReturn = this.usersLoadReturn.bind(this);
+    var _rolesLoadReturn = this.rolesLoadReturn.bind(this);
 
     var backend_config = {
       folderDataLoad: _folderDataLoad,
@@ -29,6 +31,8 @@ class UPMFrontend {
       updateServerListReturn: _updateServerListReturn,
       rebootServerListReturn: _rebootServerListReturn,
       rebootDelServerListReturn: _rebootDelServerListReturn,
+      usersLoadReturn: _usersLoadReturn,
+      rolesLoadReturn: _rolesLoadReturn,
     }
     this.add = false;
 
@@ -37,6 +41,9 @@ class UPMFrontend {
     this.currentView = undefined;
     this.server_data_finished = false;
     this.folder_data_finished = false;
+
+    this.users_data_finished = false;
+    this.roles_data_finished = false;
 
     this.batchrunCount;
     this.batchrunFinished;
@@ -48,6 +55,85 @@ class UPMFrontend {
 
   loadData() {
     this.backend.loadData();
+  }
+
+  loadRBAC() {
+    this.backend.RBACRequestData();
+  }
+
+  usersLoadReturn() {
+    this.users_data_finished = true;
+    if( this.roles_data_finished )
+      this.rbacSetData();
+  }
+
+  rolesLoadReturn() {
+    this.roles_data_finished = true;
+    if( this.users_data_finished )
+      this.rbacSetData();
+  }
+
+
+  rbacSetData() {
+    var users = this.backend.users;
+    var roles = this.backend.roles;
+
+    this.updateRBACData(users, roles);
+    this.updateRBACDescription(roles);
+  }
+
+  updateRBACData(users, roles) {
+    $('#rbac-table > thead').empty();
+    $('#rbac-table > tbody').empty();
+
+    var head = '<tr>';
+    head += '<th scope="col">Username \\ Role</th>';
+
+    roles.forEach( (role, index) => {
+      head += '<th scope="col">' + role.Title + '</th>';
+    });
+    head += '</tr>';
+    $('#rbac-table > thead').append( head );
+
+
+    users.forEach( (user, index) => {
+      var row = '<tr>';
+      row += '<th scope="row">' + user.name + '</th>';
+
+      for(var i = 0; i < roles.length; i++) {
+        var role = roles[i].Title;
+        var checked = "";
+        user.roles.forEach( (r, index) => {
+          if( role == r.Title )
+            checked = "checked";
+        });
+
+        var ci = '_ci' + index + '_' + i;
+        var checkbox =  '<div class="custom-control custom-checkbox">';
+        checkbox += '<input type="checkbox" class="custom-control-input server-checkbox" id="customCheck' + ci + '" ' + checked + ' data-username="' + user.name + '" data-role="' + role + '">';
+        checkbox += '<label class="custom-control-label" for="customCheck' + ci + '"></label>'
+        checkbox += '</div>'
+
+        row += '<td>' + checkbox + '</td>';
+      }
+
+      row += '</tr>';
+      $('#rbac-table > tbody').append( row );
+    });
+  }
+
+  updateRBACDescription(roles) {
+    $('#rbac-descriptions').empty();
+
+    roles.forEach( (role, index) => {
+      var card = '<div class="card mt-2">';
+      card += '<div class="card-body">';
+      card += '<h5 class="card-title">' + role.Title + '</h5>';
+      card += '<p class="card-text">' + role.Description + '</p>';
+      card += '</div></div>';
+
+      $('#rbac-descriptions').append( card );
+    });
   }
 
   folderDataLoad() {
